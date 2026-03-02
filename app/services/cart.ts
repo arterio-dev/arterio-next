@@ -100,6 +100,22 @@ export const cartService = {
     return cart.reduce((count, item) => count + item.quantity, 0);
   },
 
+  // 1. BUSCAR O CARRINHO ATUAL DO SERVIDOR
+  async getCartResponse(): Promise<Response> {
+    try {
+      const response = await fetch(`${WP_CONFIG.storeApiUrl}/cart`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        credentials: 'include', // Puxa o cookie de sessão do usuário,
+        cache: 'no-store', // Evita cache para garantir dados frescos
+      });
+      return response;
+    } catch (error) {
+      console.error('Error fetching cart response:', error);
+      throw error;
+    }
+  },
+
   async redirectToCheckout(cart: CartItem[]): Promise<void> {
     if (cart.length === 0) {
       alert('Seu carrinho está vazio');
@@ -107,29 +123,10 @@ export const cartService = {
     }
 
     try {
-      // 1. BUSCAR O CARRINHO ATUAL DO SERVIDOR (Para ver se há lixo antigo)
-      const getCartRes = await fetch(`${WP_CONFIG.storeApiUrl}/cart`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        credentials: 'include', // Puxa o cookie de sessão do usuário,
-        cache: 'no-store', // Evita cache para garantir dados frescos
-      });
-
-      console.log('Resposta do carrinho do servidor:', getCartRes);
-
-      // Extraindo e logando os headers para debug
-      const headersInfo = Array.from(getCartRes.headers.entries()).reduce((acc, [key, value]) => {
-        acc[key] = value;
-        return acc;
-      }, {} as Record<string, string>);
-
-      console.log('Headers recebidos do servidor:', headersInfo);
-
+      const getCartRes = await this.getCartResponse();
       const wcNonce = getCartRes.headers.get('nonce') || '';
       const cartToken = getCartRes.headers.get('cart-token') || '';
       
-      console.log('Nonce recebido do servidor:', wcNonce);
-      console.log('Cart Token recebido do servidor:', cartToken);
 
       if (!getCartRes.ok && getCartRes.status !== 404) {
           console.warn("Falha ao buscar carrinho inicial");
@@ -137,7 +134,6 @@ export const cartService = {
 
       if (getCartRes.ok) {
         const serverCart = await getCartRes.json();
-        console.log('Carrinho atual do servidor:', serverCart);
 
         // 2. LIMPAR O SERVIDOR: Se houver itens velhos, removemos um por um
         if (serverCart.items && serverCart.items.length > 0) {
@@ -177,7 +173,7 @@ export const cartService = {
 
       // 5. Redirecionar para o checkout limpo
       // Comentário para teste
-      //window.location.href = WP_CONFIG.checkoutUrl;
+      window.location.href = WP_CONFIG.checkoutUrl;
 
     } catch (error) {
       console.error('Erro fatal ao preparar checkout:', error);
@@ -185,11 +181,52 @@ export const cartService = {
     }
   },
 
-  async syncWithWooCommerce(cart: CartItem[]): Promise<void> {
+  async syncCartFromServer(): Promise<CartItem[]> {
     try {
-      console.log('Cart sync with WooCommerce would happen here');
+      const response = await this.getCartResponse();
+      
+      if (!response.ok) {
+        return this.getLocalCart(); // Se falhar, mantém o que está localmente
+      }
+
+      const serverCart = await response.json();
+
+      // Se o servidor diz que o carrinho está vazio, limpamos o front
+      if (!serverCart.items || serverCart.items.length === 0) {
+        this.clearCart();
+        return [];
+      }
+
+      // Reconstruímos o formato do CartItem local baseado na resposta do Woo
+      const syncedCart: CartItem[] = serverCart.items.map((item: any) => {
+        // A Store API retorna valores em centavos (ex: 1500 = 15.00)
+        // O divisor por 100 pode variar dependendo da configuração de decimais no WooCommerce
+        const price = (item.prices.price / 100).toFixed(2);
+        
+        return {
+          key: item.key, // Mantemos a chave exata do Woo
+          product_id: item.id,
+          variation_id: item.variation_id || undefined,
+          quantity: item.quantity,
+          product: {
+            id: item.id.toString(),
+            name: item.name,
+            price: price,
+            // Adicione imagens ou outras propriedades que o seu card de produto exija
+            images: item.images, 
+          } as any,
+          subtotal: (item.totals.line_subtotal / 100).toFixed(2),
+          total: (item.totals.line_total / 100).toFixed(2),
+        };
+      });
+
+      // Sobrescreve o localStorage com a verdade absoluta do servidor
+      this.saveLocalCart(syncedCart);
+      return syncedCart;
+
     } catch (error) {
-      console.error('Error syncing cart:', error);
+      console.error('Erro ao sincronizar com o WooCommerce:', error);
+      return this.getLocalCart();
     }
-  },
+  }
 };
