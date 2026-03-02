@@ -112,7 +112,7 @@ export const cartService = {
         method: 'GET',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
         credentials: 'include', // Puxa o cookie de sessão do usuário,
-        //cache: 'no-store', // Evita cache para garantir dados frescos
+        cache: 'no-store', // Evita cache para garantir dados frescos
       });
 
       if (getCartRes.ok) {
@@ -125,7 +125,7 @@ export const cartService = {
               method: 'POST',
               headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
               credentials: 'include', // Puxa o cookie de sessão do usuário,
-              //cache: 'no-store', // Evita cache para garantir dados frescos
+              cache: 'no-store', // Evita cache para garantir dados frescos
               body: JSON.stringify({ key: item.key }), // Remove usando a chave única do servidor
             });
           }
@@ -138,7 +138,7 @@ export const cartService = {
           method: 'POST',
           headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
           credentials: 'include', // Puxa o cookie de sessão do usuário,
-          //cache: 'no-store', // Evita cache para garantir dados frescos
+          cache: 'no-store', // Evita cache para garantir dados frescos
           body: JSON.stringify({
             id: item.product_id,
             quantity: item.quantity,
@@ -155,7 +155,8 @@ export const cartService = {
       this.clearCart();
 
       // 5. Redirecionar para o checkout limpo
-      window.location.href = WP_CONFIG.checkoutUrl;
+      // Comentário para teste
+      //window.location.href = WP_CONFIG.checkoutUrl;
 
     } catch (error) {
       console.error('Erro fatal ao preparar checkout:', error);
