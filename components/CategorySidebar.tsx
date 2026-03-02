@@ -46,8 +46,6 @@ export function CategorySidebar({ onCategorySelect, selectedCategoryId }: Catego
       <nav className="space-y-8">
         {hierarchicalCategories.map((category) => (
           <div key={category.id} onClick={() => onCategorySelect?.(category.id.toString(), category.name)}>
-            {/* Se o cliente quiser clicar na categoria pai, adicione onClick aqui. 
-                Caso contrário, serve apenas de título. */}
             <h3 className="mb-3 text-sm tracking-wide text-black">
               {category.name.toUpperCase()}
             </h3>

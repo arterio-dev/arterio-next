@@ -1,4 +1,4 @@
-export interface Category {
+/* export interface Category {
   name: string;
   subcategories: string[];
 }
@@ -80,3 +80,4 @@ export const categories: Category[] = [
     ],
   },
 ];
+ */
