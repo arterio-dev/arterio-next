@@ -183,28 +183,31 @@ export const cartService = {
 
   async syncCartFromServer(): Promise<CartItem[]> {
     try {
+      const localCart = this.getLocalCart();
+      
       const response = await this.getCartResponse();
       
       if (!response.ok) {
-        return this.getLocalCart(); // Se falhar, mantém o que está localmente
+        return localCart; // Se a API falhar, mantém o carrinho local a funcionar
       }
 
       const serverCart = await response.json();
 
-      // Se o servidor diz que o carrinho está vazio, limpamos o front
+      // Mantemos intacto o que o utilizador estiver a adicionar no localStorage.
       if (!serverCart.items || serverCart.items.length === 0) {
-        this.clearCart();
-        return [];
+        return localCart;
       }
 
-      // Reconstruímos o formato do CartItem local baseado na resposta do Woo
+      if (localCart.length > 0) {
+        return localCart;
+      }
+
+      // Vamos reconstruir o carrinho visual para o utilizador.
       const syncedCart: CartItem[] = serverCart.items.map((item: any) => {
-        // A Store API retorna valores em centavos (ex: 1500 = 15.00)
-        // O divisor por 100 pode variar dependendo da configuração de decimais no WooCommerce
         const price = (item.prices.price / 100).toFixed(2);
         
         return {
-          key: item.key, // Mantemos a chave exata do Woo
+          key: item.key,
           product_id: item.id,
           variation_id: item.variation_id || undefined,
           quantity: item.quantity,
@@ -212,7 +215,6 @@ export const cartService = {
             id: item.id.toString(),
             name: item.name,
             price: price,
-            // Adicione imagens ou outras propriedades que o seu card de produto exija
             images: item.images, 
           } as any,
           subtotal: (item.totals.line_subtotal / 100).toFixed(2),
@@ -220,13 +222,12 @@ export const cartService = {
         };
       });
 
-      // Sobrescreve o localStorage com a verdade absoluta do servidor
       this.saveLocalCart(syncedCart);
       return syncedCart;
 
     } catch (error) {
       console.error('Erro ao sincronizar com o WooCommerce:', error);
-      return this.getLocalCart();
+      return this.getLocalCart(); // Em caso de erro catastrófico, o front não quebra
     }
   }
 };
