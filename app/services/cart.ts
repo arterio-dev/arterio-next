@@ -115,6 +115,8 @@ export const cartService = {
         cache: 'no-store', // Evita cache para garantir dados frescos
       });
 
+      console.log('Resposta do carrinho do servidor:', getCartRes);
+
       const wcNonce = getCartRes.headers.get('Nonce') || '';
 
       if (!getCartRes.ok && getCartRes.status !== 404) {
@@ -123,6 +125,7 @@ export const cartService = {
 
       if (getCartRes.ok) {
         const serverCart = await getCartRes.json();
+        console.log('Carrinho atual do servidor:', serverCart);
 
         // 2. LIMPAR O SERVIDOR: Se houver itens velhos, removemos um por um
         if (serverCart.items && serverCart.items.length > 0) {
