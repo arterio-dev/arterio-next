@@ -123,39 +123,54 @@ export const cartService = {
     }
 
     try {
-      const getCartRes = await this.getCartResponse();
-      const wcNonce = getCartRes.headers.get('nonce') || '';
-      const cartToken = getCartRes.headers.get('cart-token') || '';
-      
+      // 1. BUSCAR O CARRINHO ATUAL DO SERVIDOR
+      const getCartRes = await fetch(`${WP_CONFIG.storeApiUrl}/cart`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        credentials: 'include', 
+        cache: 'no-store', 
+      });
+
+      // Extrair o Nonce e o Token de identificação da sessão
+      const wcNonce = getCartRes.headers.get('Nonce') || '';
+      const cartToken = getCartRes.headers.get('Cart-Token') || '';
 
       if (!getCartRes.ok && getCartRes.status !== 404) {
           console.warn("Falha ao buscar carrinho inicial");
       }
 
+      // Prepara os headers base para todas as próximas requisições desta sessão
+      const sessionHeaders: HeadersInit = {
+        'Accept': 'application/json', 
+        'Content-Type': 'application/json'
+      };
+      if (wcNonce) sessionHeaders['Nonce'] = wcNonce;
+      if (cartToken) sessionHeaders['Cart-Token'] = cartToken;
+
       if (getCartRes.ok) {
         const serverCart = await getCartRes.json();
 
-        // 2. LIMPAR O SERVIDOR: Se houver itens velhos, removemos um por um
+        // 2. LIMPAR O SERVIDOR: Remover itens velhos
         if (serverCart.items && serverCart.items.length > 0) {
           for (const item of serverCart.items) {
             await fetch(`${WP_CONFIG.storeApiUrl}/cart/remove-item`, {
               method: 'POST',
-              headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', ...(wcNonce ? { 'Nonce': wcNonce } : {}), ...(cartToken ? { 'Cart-Token': cartToken } : {}) },
-              credentials: 'include', // Puxa o cookie de sessão do usuário,
-              cache: 'no-store', // Evita cache para garantir dados frescos
-              body: JSON.stringify({ key: item.key }), // Remove usando a chave única do servidor
+              headers: sessionHeaders, // Enviamos o Cart-Token e o Nonce
+              credentials: 'include',
+              cache: 'no-store',
+              body: JSON.stringify({ key: item.key }), 
             });
           }
         }
       }
 
-      // 3. INJETAR O CARRINHO NOVO: Loop sequencial obrigatório
+      // 3. INJETAR O CARRINHO NOVO: OBRIGATÓRIO enviar os mesmos headers!
       for (const item of cart) {
         const response = await fetch(`${WP_CONFIG.storeApiUrl}/cart/add-item`, {
           method: 'POST',
-          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', ...(wcNonce ? { 'Nonce': wcNonce } : {}), ...(cartToken ? { 'Cart-Token': cartToken } : {}) },
-          credentials: 'include', // Puxa o cookie de sessão do usuário,
-          cache: 'no-store', // Evita cache para garantir dados frescos
+          headers: sessionHeaders, // Se não enviar aqui, o WC cria um carrinho paralelo!
+          credentials: 'include',
+          cache: 'no-store',
           body: JSON.stringify({
             id: item.product_id,
             quantity: item.quantity,
@@ -171,8 +186,7 @@ export const cartService = {
       // 4. Limpar o localStorage local
       this.clearCart();
 
-      // 5. Redirecionar para o checkout limpo
-      // Comentário para teste
+      // 5. Redirecionar para o checkout
       window.location.href = WP_CONFIG.checkoutUrl;
 
     } catch (error) {
