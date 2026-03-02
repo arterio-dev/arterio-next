@@ -5,7 +5,7 @@ import { ChevronDown, Menu } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 
 interface CategoryNavProps {
-  onCategorySelect?: (id: number, name: string) => void;
+  onCategorySelect?: (id: string, name: string) => void;
 }
 
 export function CategoryNav({ onCategorySelect }: CategoryNavProps) {
@@ -36,7 +36,7 @@ export function CategoryNav({ onCategorySelect }: CategoryNavProps) {
 
   const handleCategoryClick = (categoryId: number, categoryName: string, hasSubcategories: boolean) => {
     if (!hasSubcategories) {
-      onCategorySelect?.(categoryId, categoryName);
+      onCategorySelect?.(categoryId.toString(), categoryName);
       setActiveCategory(null);
     } else {
       setActiveCategory(activeCategory === categoryId ? null : categoryId);
@@ -44,14 +44,14 @@ export function CategoryNav({ onCategorySelect }: CategoryNavProps) {
   };
 
   const handleSubcategoryClick = (subId: number, subName: string) => {
-    onCategorySelect?.(subId, subName);
+    onCategorySelect?.(subId.toString(), subName);
     setActiveCategory(null);
     setIsMobileMenuOpen(false);
   };
 
   const toggleMobileCategory = (categoryId: number, categoryName: string, hasSubcategories: boolean) => {
     if (!hasSubcategories) {
-      onCategorySelect?.(categoryId, categoryName);
+      onCategorySelect?.(categoryId.toString(), categoryName);
       setIsMobileMenuOpen(false);
       setActiveCategory(null);
     } else {

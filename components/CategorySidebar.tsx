@@ -3,9 +3,10 @@
 import { useMemo } from "react";
 import { useCategories } from "@/hooks/useCategories";
 
+// Dentro de components/CategorySidebar.tsx
 interface CategorySidebarProps {
-  onCategorySelect?: (id: number, name: string) => void;
-  selectedCategoryId?: string | null;
+  onCategorySelect?: (id: string, name: string) => void; // <-- Tem de estar assim
+  selectedCategoryId?: string | null;                    // <-- Tem de estar assim
 }
 
 export function CategorySidebar({ onCategorySelect, selectedCategoryId }: CategorySidebarProps) {
@@ -44,7 +45,7 @@ export function CategorySidebar({ onCategorySelect, selectedCategoryId }: Catego
     <aside className="hidden lg:block w-64 pr-12">
       <nav className="space-y-8">
         {hierarchicalCategories.map((category) => (
-          <div key={category.id} onClick={() => onCategorySelect?.(category.id, category.name)}>
+          <div key={category.id} onClick={() => onCategorySelect?.(category.id.toString(), category.name)}>
             {/* Se o cliente quiser clicar na categoria pai, adicione onClick aqui. 
                 Caso contrário, serve apenas de título. */}
             <h3 className="mb-3 text-sm tracking-wide text-black">
@@ -55,7 +56,7 @@ export function CategorySidebar({ onCategorySelect, selectedCategoryId }: Catego
               {category.subcategories.map((subcategory) => (
                 <li key={subcategory.id}>
                   <button
-                    onClick={() => onCategorySelect?.(subcategory.id, subcategory.name)}
+                    onClick={() => onCategorySelect?.(subcategory.id.toString(), subcategory.name)}
                     className={`text-sm transition-colors text-left ${
                       selectedCategoryId === subcategory.id.toString()
                         ? 'text-black font-medium'
