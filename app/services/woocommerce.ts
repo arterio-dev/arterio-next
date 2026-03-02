@@ -8,6 +8,9 @@ async function storeRequest<T>(endpoint: string, options: RequestInit = {}): Pro
   try {
     const response = await fetch(url, {
       ...options,
+      // ADICIONADO: Força o Next.js a nunca colocar esta resposta em cache
+      // Garante que recebe sempre os dados frescos e reais do WooCommerce
+      cache: 'no-store', 
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
@@ -45,7 +48,9 @@ export const productService = {
 
 export const categoryService = {
   async getAll(): Promise<any[]> {
-    return storeRequest<any[]>('/products/categories');
+    // ADICIONADO: per_page=100 e hide_empty=false para forçar a API
+    // a entregar TODAS as categorias disponíveis no painel
+    return storeRequest<any[]>('/products/categories?per_page=100&hide_empty=false');
   }
 };
 
