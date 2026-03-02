@@ -124,9 +124,10 @@ export const cartService = {
 
     try {
       const getCartRes = await this.getCartResponse();
-      const wcNonce = getCartRes.headers.get('nonce') || '';
-      const cartToken = getCartRes.headers.get('cart-token') || '';
       
+      // 1. Usar let para permitir a atualização contínua dos tokens
+      let wcNonce = getCartRes.headers.get('nonce') || '';
+      let cartToken = getCartRes.headers.get('cart-token') || '';
 
       if (!getCartRes.ok && getCartRes.status !== 404) {
           console.warn("Falha ao buscar carrinho inicial");
@@ -135,27 +136,43 @@ export const cartService = {
       if (getCartRes.ok) {
         const serverCart = await getCartRes.json();
 
-        // 2. LIMPAR O SERVIDOR: Se houver itens velhos, removemos um por um
+        // 2. LIMPAR O SERVIDOR: Atualizando os tokens a cada iteração
         if (serverCart.items && serverCart.items.length > 0) {
           for (const item of serverCart.items) {
-            await fetch(`${WP_CONFIG.storeApiUrl}/cart/remove-item`, {
+            const removeRes = await fetch(`${WP_CONFIG.storeApiUrl}/cart/remove-item`, {
               method: 'POST',
-              headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', ...(wcNonce ? { 'Nonce': wcNonce } : {}), ...(cartToken ? { 'Cart-Token': cartToken } : {}) },
-              credentials: 'include', // Puxa o cookie de sessão do usuário,
-              cache: 'no-store', // Evita cache para garantir dados frescos
-              body: JSON.stringify({ key: item.key }), // Remove usando a chave única do servidor
+              headers: { 
+                'Accept': 'application/json', 
+                'Content-Type': 'application/json', 
+                ...(wcNonce ? { 'Nonce': wcNonce } : {}), 
+                ...(cartToken ? { 'Cart-Token': cartToken } : {}) 
+              },
+              credentials: 'include',
+              cache: 'no-store',
+              body: JSON.stringify({ key: item.key }),
             });
+
+            // ATUALIZAÇÃO DOS TOKENS PARA A PRÓXIMA REQUISIÇÃO
+            if (removeRes.ok) {
+              wcNonce = removeRes.headers.get('nonce') || wcNonce;
+              cartToken = removeRes.headers.get('cart-token') || cartToken;
+            }
           }
         }
       }
 
-      // 3. INJETAR O CARRINHO NOVO: Loop sequencial obrigatório
+      // 3. INJETAR O CARRINHO NOVO: Atualizando os tokens a cada iteração
       for (const item of cart) {
         const response = await fetch(`${WP_CONFIG.storeApiUrl}/cart/add-item`, {
           method: 'POST',
-          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', ...(wcNonce ? { 'Nonce': wcNonce } : {}), ...(cartToken ? { 'Cart-Token': cartToken } : {}) },
-          credentials: 'include', // Puxa o cookie de sessão do usuário,
-          cache: 'no-store', // Evita cache para garantir dados frescos
+          headers: { 
+            'Accept': 'application/json', 
+            'Content-Type': 'application/json', 
+            ...(wcNonce ? { 'Nonce': wcNonce } : {}), 
+            ...(cartToken ? { 'Cart-Token': cartToken } : {}) 
+          },
+          credentials: 'include',
+          cache: 'no-store',
           body: JSON.stringify({
             id: item.product_id,
             quantity: item.quantity,
@@ -165,6 +182,10 @@ export const cartService = {
 
         if (!response.ok) {
           console.warn(`Aviso: Falha ao sincronizar o produto ${item.product_id}`);
+        } else {
+          // ATUALIZAÇÃO DOS TOKENS PARA A PRÓXIMA REQUISIÇÃO
+          wcNonce = response.headers.get('nonce') || wcNonce;
+          cartToken = response.headers.get('cart-token') || cartToken;
         }
       }
 
@@ -172,7 +193,6 @@ export const cartService = {
       this.clearCart();
 
       // 5. Redirecionar para o checkout limpo
-      // Comentário para teste
       window.location.href = WP_CONFIG.checkoutUrl;
 
     } catch (error) {
