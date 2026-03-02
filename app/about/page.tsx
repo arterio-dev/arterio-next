@@ -6,9 +6,12 @@ import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { About } from "@/components/About";
 import { useRouter } from "next/navigation";
+import { useCart } from "@/hooks/useCart";
 
 export default function AboutPage() {
   const router = useRouter();
+    const { addToCart, cart, total, itemCount, isOpen: cartOpen, setIsOpen: setCartOpen, removeFromCart, updateQuantity, goToCheckout } = useCart();
+  
 
   const navigateTo = (page: string) => {
     router.push(`/${page}`);
@@ -27,10 +30,11 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header 
-        cartItemCount={0}
+      <Header
+        cartItemCount={itemCount}
+        onCartClick={() => setCartOpen(true)}
         onNavigate={navigateTo}
-        onSearch={handleSearch}
+        onSearch={() => { }}
       />
 
       <CategoryNav onCategorySelect={handleCategorySelect} />

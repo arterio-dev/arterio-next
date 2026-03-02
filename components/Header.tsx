@@ -88,12 +88,12 @@ export function Header({ onCartClick, cartItemCount = 0, onNavigate, onSearch }:
             >
               SOBRE
             </button>
-            <button 
+            {/* <button 
               onClick={() => handleNavigate("contact")}
               className="text-sm tracking-wide text-black/60 hover:text-black transition-colors"
             >
               CONTATO
-            </button>
+            </button> */}
           </nav>
 
           {/* Actions */}
