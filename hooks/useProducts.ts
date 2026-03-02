@@ -27,7 +27,7 @@ export function useProducts(options: UseProductsOptions = {}) {
 
     let isMounted = true;
 
-    async function fetchProducts() {
+    /* async function fetchProducts() {
       try {
         setLoading(true);
         setError(null);
@@ -41,6 +41,43 @@ export function useProducts(options: UseProductsOptions = {}) {
 
         if (isMounted) {
           const localProducts = mapWCProductsToLocal(wcProducts);
+          setProducts(localProducts);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err : new Error('Failed to fetch products'));
+          console.error('Error fetching products:', err);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    } */
+
+      async function fetchProducts() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Não enviamos o 'category' na requisição pois a API espera um ID numérico.
+        // Faremos o filtro de categoria localmente abaixo.
+        const wcProducts = await productService.getAll({
+          per_page: perPage,
+          search,
+          featured,
+        });
+
+        if (isMounted) {
+          let localProducts = mapWCProductsToLocal(wcProducts);
+          
+          // Aplicando o filtro pelo nome da categoria localmente
+          if (category) {
+            localProducts = localProducts.filter(
+              (p) => p.category.toLowerCase() === category.toLowerCase()
+            );
+          }
+
           setProducts(localProducts);
         }
       } catch (err) {
