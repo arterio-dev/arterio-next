@@ -52,6 +52,7 @@ export const cartService = {
         ...options,
         headers,
         cache: 'no-store',
+        credentials: 'include'
       });
 
       const newToken = response.headers.get('Cart-Token');
