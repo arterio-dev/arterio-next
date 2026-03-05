@@ -23,7 +23,7 @@ interface ProductDetailPageProps {
 export default function ProductDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { addToCart, cart, total, itemCount, isOpen: cartOpen, setIsOpen: setCartOpen, removeFromCart, updateQuantity, goToCheckout, toasts, removeToast } = useCart();
+  const { addToCart, cart, total, itemCount, isOpen: cartOpen, setIsOpen: setCartOpen, removeFromCart, updateQuantity, goToCheckout, isRedirecting, toasts, removeToast } = useCart();
   
   const [product, setProduct] = useState<WCProduct | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -320,6 +320,7 @@ export default function ProductDetailPage() {
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeFromCart}
         onCheckout={goToCheckout}
+        isRedirecting={isRedirecting}
       />
 
       {/* Notify Me Modal */}

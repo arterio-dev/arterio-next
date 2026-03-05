@@ -26,7 +26,7 @@ function ProductsContent() {
 
   const {
     cart, total, itemCount, isOpen: cartOpen, setIsOpen: setCartOpen,
-    addToCart, removeFromCart, updateQuantity, goToCheckout, toasts, removeToast
+    addToCart, removeFromCart, updateQuantity, goToCheckout, isRedirecting, toasts, removeToast
   } = useCart();
 
   const handleNotifyMe = (productName: string) => {
@@ -83,6 +83,7 @@ function ProductsContent() {
         isOpen={cartOpen} onClose={() => setCartOpen(false)}
         cart={cart} total={total}
         onUpdateQuantity={updateQuantity} onRemoveItem={removeFromCart} onCheckout={goToCheckout}
+        isRedirecting={isRedirecting}
       />
 
       <NotifyMeModal

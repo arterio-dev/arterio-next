@@ -3,8 +3,11 @@
 // O Cart-Token vive no localStorage e é injectado como header em cada request.
 // ──────────────────────────────────────────────────────────────────────────────
 
-export const CART_TOKEN_LS_KEY = 'arterio_cart_token'; // partilhado com checkoutApi
+import { WP_CONFIG } from '@/app/config/wordpress';
+
+export const CART_TOKEN_LS_KEY = 'arterio_cart_token';
 const CART_API_BASE = '/api/cart';
+const CHECKOUT_HANDOFF_URL = '/api/checkout';
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
 
@@ -98,7 +101,28 @@ export const cartApi = {
 
   clearToken,
 
-  redirectToCheckout: () => {
-    window.location.href = '/checkout';
+  /**
+   * Handoff de sessão + redirect para o checkout nativo do WooCommerce.
+   *
+   * 1. GET /api/checkout — o proxy faz GET ao WC Store API, que devolve
+   *    Set-Cookie (wp_wc_session_*). O proxy repassa esses cookies ao browser.
+   * 2. Redirect para WP_CONFIG.checkoutUrl — o WooCommerce reconhece a sessão
+   *    via os cookies e mostra o carrinho correcto.
+   *
+   * Sem o passo 1, o checkout nativo teria um carrinho vazio porque o Cart-Token
+   * (localStorage) não é partilhado com o WordPress.
+   */
+  redirectToCheckout: async (): Promise<void> => {
+    const token = getCartToken();
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (token) headers['Cart-Token'] = token;
+
+    await fetch(CHECKOUT_HANDOFF_URL, {
+      method: 'GET',
+      headers,
+      credentials: 'include', // aceita os Set-Cookie do WooCommerce
+    });
+
+    window.location.href = WP_CONFIG.checkoutUrl!;
   },
 };

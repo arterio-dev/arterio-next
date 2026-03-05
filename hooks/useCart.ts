@@ -13,7 +13,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import useSWR from 'swr';
-import { cartApi } from '@/app/services/cart';
+import { cartApi, getCartToken, clearToken } from '@/app/services/cart';
 import { normalizeCart, normalizeTotal } from '@/utils/cartNormalizer';
 import { useToast } from '@/hooks/useToast';
 import type { CartItem, Product } from '@/app/types/woocommerce';
@@ -22,8 +22,9 @@ const CART_KEY = 'cart';
 const QUANTITY_DEBOUNCE_MS = 350;
 
 export function useCart() {
-  const [isOpen,     setIsOpen]     = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isOpen,        setIsOpen]        = useState(false);
+  const [isUpdating,    setIsUpdating]    = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
 
   // Mapa de timers pendentes por item key — permite debounce individual por item
@@ -38,8 +39,15 @@ export function useCart() {
     revalidateOnReconnect: true,
     keepPreviousData:      false,
     refreshInterval:       0,
-    onError: () => {
-      // Erros de rede silenciosos — não bloquear a UI
+    onError: (err: Error) => {
+      // Se o token apontar para uma sessão expirada/consumida (ex: após checkout
+      // no WooCommerce), limpa-o silenciosamente e reseta o cache SWR.
+      const is404 = err?.message?.includes('404');
+      const isGone = err?.message?.includes('410');
+      if ((is404 || isGone) && getCartToken()) {
+        clearToken();
+        mutate(undefined, { revalidate: false });
+      }
     },
   });
 
@@ -160,10 +168,18 @@ export function useCart() {
   }, [mutate]);
 
   // ── goToCheckout ───────────────────────────────────────────────────────────
+  // Handoff de sessão (GET /api/checkout) → redirect para WooCommerce nativo.
 
-  const goToCheckout = useCallback(() => {
-    cartApi.redirectToCheckout();
-  }, []);
+  const goToCheckout = useCallback(async () => {
+    setIsRedirecting(true);
+    try {
+      await cartApi.redirectToCheckout();
+    } catch {
+      addToast('Não foi possível redirecionar para o checkout. Tenta novamente.', 'error');
+      setIsRedirecting(false);
+    }
+    // NB: não fazemos setIsRedirecting(false) no success — o browser vai navegar
+  }, [addToast]);
 
   return {
     cart,
@@ -173,6 +189,7 @@ export function useCart() {
     setIsOpen,
     isLoading,
     isUpdating,
+    isRedirecting,
     addToCart,
     removeFromCart,
     updateQuantity,

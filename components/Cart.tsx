@@ -12,6 +12,7 @@ interface CartProps {
   onUpdateQuantity: (itemKey: string, quantity: number) => void;
   onRemoveItem: (itemKey: string) => void;
   onCheckout: () => void;
+  isRedirecting?: boolean;
 }
 
 export function Cart({
@@ -22,6 +23,7 @@ export function Cart({
   onUpdateQuantity,
   onRemoveItem,
   onCheckout,
+  isRedirecting = false,
 }: CartProps) {
   if (!isOpen) return null;
 
@@ -147,9 +149,10 @@ export function Cart({
 
               <button
                 onClick={onCheckout}
-                className="w-full bg-black py-4 text-sm tracking-wide text-white hover:bg-black/90 transition-colors"
+                disabled={isRedirecting}
+                className="w-full bg-black py-4 text-sm tracking-wide text-white hover:bg-black/90 transition-colors disabled:opacity-60 disabled:cursor-wait"
               >
-                FINALIZAR COMPRA
+                {isRedirecting ? 'REDIRECIONANDO…' : 'FINALIZAR COMPRA'}
               </button>
 
               <p className="mt-4 text-center text-xs text-black/40">

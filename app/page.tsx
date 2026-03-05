@@ -28,6 +28,7 @@ export default function HomePage() {
     removeFromCart,
     updateQuantity,
     goToCheckout,
+    isRedirecting,
     toasts,
     removeToast
   } = useCart();
@@ -87,6 +88,7 @@ export default function HomePage() {
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeFromCart}
         onCheckout={goToCheckout}
+        isRedirecting={isRedirecting}
       />
 
       <NotifyMeModal

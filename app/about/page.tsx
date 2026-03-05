@@ -22,6 +22,7 @@ export default function AboutPage() {
     removeFromCart,
     updateQuantity,
     goToCheckout,
+    isRedirecting,
     toasts,
     removeToast
   } = useCart();
@@ -66,6 +67,7 @@ export default function AboutPage() {
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeFromCart}
         onCheckout={goToCheckout}
+        isRedirecting={isRedirecting}
       />
 
       <Footer onNavigate={navigateTo} />
