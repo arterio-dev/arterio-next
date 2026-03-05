@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/app/providers/AuthProvider";
 import "./globals.css";
+import { SWRProvider } from "./providers/SWRProvider";
 
 export const metadata: Metadata = {
   title: "Arterio - Equipamentos para Produção Audiovisual",
@@ -15,10 +16,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className="antialiased bg-white text-black">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-      </body>
-    </html>
+        <SWRProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </SWRProvider>
+      </body >
+    </html >
   );
 }
