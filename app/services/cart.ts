@@ -41,7 +41,7 @@ export const cartService = {
     headers.set('Content-Type', 'application/json');
     if (token) headers.set('Cart-Token', token);
 
-    const response = await fetch(`${WP_CONFIG.storeApiUrl}${endpoint}`, {
+    const response = await fetch(`${WP_CONFIG.cartApiUrl}${endpoint}`, {
       ...options,
       headers,
       cache: 'no-store',
