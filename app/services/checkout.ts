@@ -1,21 +1,18 @@
 // ─── Checkout Service ─────────────────────────────────────────────────────────
-// Gere todas as chamadas durante o checkout headless.
-// Reutiliza o Cart-Token do cartService (mesmo localStorage key).
-// O Nonce é obtido no GET /checkout e guardado em memória para o POST.
+// Toda a lógica de nonce foi removida deste serviço — o proxy em
+// app/api/checkout/route.ts trata do ciclo nonce+sessão internamente.
+// Este serviço só precisa de enviar o Cart-Token e os cookies de sessão
+// (que o browser gere automaticamente via credentials:'include').
 // ──────────────────────────────────────────────────────────────────────────────
 
-import { getCartToken } from '@/app/services/cart';
+import { getCartToken, CART_TOKEN_LS_KEY } from '@/app/services/cart';
 
-const CART_TOKEN_LS_KEY = 'arterio_cart_token';
-const CHECKOUT_API      = '/api/checkout';
+const CHECKOUT_API = '/api/checkout';
 
 function saveToken(token: string): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(CART_TOKEN_LS_KEY, token);
 }
-
-// Nonce em memória — obtido no GET /checkout, enviado no POST /checkout
-let _nonce: string | null = null;
 
 async function request<T = unknown>(
   path: string,
@@ -25,23 +22,19 @@ async function request<T = unknown>(
 
   const headers = new Headers(options.headers);
   headers.set('Content-Type', 'application/json');
-  if (token)  headers.set('Cart-Token', token);
-  if (_nonce) headers.set('Nonce', _nonce);
+  if (token) headers.set('Cart-Token', token);
 
   const response = await fetch(`${CHECKOUT_API}${path}`, {
     ...options,
     headers,
-    cache: 'no-store',
+    cache:       'no-store',
+    // credentials:'include' garante que os cookies de sessão WordPress
+    // (devolvidos pelo GET) são reenviados automaticamente no POST
     credentials: 'include',
   });
 
-  // Actualiza token se a API devolver um novo
   const newToken = response.headers.get('Cart-Token');
   if (newToken && newToken !== token) saveToken(newToken);
-
-  // Guarda o nonce para requests seguintes (necessário para o POST /checkout)
-  const newNonce = response.headers.get('Nonce') ?? response.headers.get('X-WC-Store-API-Nonce');
-  if (newNonce) _nonce = newNonce;
 
   if (!response.ok) {
     const text = await response.text();
@@ -120,37 +113,33 @@ export interface CheckoutPayload {
 // ─── API ──────────────────────────────────────────────────────────────────────
 
 export const checkoutApi = {
-  // Obtém estado do checkout + nonce (guardado automaticamente em _nonce)
   getCheckout: (): Promise<CheckoutState> =>
     request<CheckoutState>(''),
 
-  // Submete pedido — usa o _nonce obtido no getCheckout()
   placeOrder: (payload: CheckoutPayload): Promise<CheckoutState> =>
     request<CheckoutState>('', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body:   JSON.stringify(payload),
     }),
 
-  // Métodos de envio
   getShippingRates: (): Promise<ShippingPackage[]> =>
     request<ShippingPackage[]>('/shipping'),
 
   selectShippingRate: (packageId: number, rateId: string): Promise<unknown> =>
     request('/shipping', {
       method: 'POST',
-      body: JSON.stringify({ package_id: packageId, rate_id: rateId }),
+      body:   JSON.stringify({ package_id: packageId, rate_id: rateId }),
     }),
 
-  // Cupões
   applyCoupon: (code: string): Promise<unknown> =>
     request('/coupon/apply', {
       method: 'POST',
-      body: JSON.stringify({ code }),
+      body:   JSON.stringify({ code }),
     }),
 
   removeCoupon: (code: string): Promise<unknown> =>
     request('/coupon/remove', {
       method: 'POST',
-      body: JSON.stringify({ code }),
+      body:   JSON.stringify({ code }),
     }),
 };
