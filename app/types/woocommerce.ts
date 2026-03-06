@@ -59,6 +59,53 @@ export interface WCMetaData {
   value: string | number | boolean;
 }
 
+// ─── Variation Types (WC REST API v3) ─────────────────────────────────────────
+
+export interface WCVariation {
+  id: number;
+  sku: string;
+  price: string;
+  regular_price: string;
+  sale_price: string;
+  on_sale: boolean;
+  status: string;
+  purchasable: boolean;
+  stock_status: 'instock' | 'outofstock' | 'onbackorder';
+  stock_quantity: number | null;
+  manage_stock: boolean;
+  image: WCImage;
+  attributes: WCVariationAttribute[];
+}
+
+export interface WCVariationAttribute {
+  id: number;
+  name: string;
+  option: string;
+}
+
+// ─── Store API Attribute Types ────────────────────────────────────────────────
+
+export interface StoreApiAttribute {
+  id: number;
+  name: string;
+  taxonomy: string;
+  has_variations: boolean;
+  terms: StoreApiTerm[];
+}
+
+export interface StoreApiTerm {
+  id: number;
+  name: string;
+  slug: string;
+  default: boolean;
+  count?: number;
+}
+
+export interface StoreApiVariationRef {
+  id: number;
+  attributes: { attribute: string; value: string }[];
+}
+
 // Cart Types
 export interface CartItem {
   key: string;

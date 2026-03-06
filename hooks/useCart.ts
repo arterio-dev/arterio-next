@@ -85,11 +85,11 @@ export function useCart() {
   const addToCart = useCallback(async (
     product: Product,
     quantity: number = 1,
-    variationId?: number,
+    variation?: { attribute: string; value: string }[],
   ) => {
     setIsOpen(true);
     await runMutation(
-      () => cartApi.addItem(product.id, quantity, variationId),
+      () => cartApi.addItem(product.id, quantity, variation),
       'Não foi possível adicionar o produto.',
     );
   }, [runMutation]);

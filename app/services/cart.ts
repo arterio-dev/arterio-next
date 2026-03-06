@@ -131,13 +131,13 @@ export const cartApi = {
    * FIX: garante que o productId é sempre enviado como número inteiro.
    * A Store API do WooCommerce espera um inteiro no campo "id".
    */
-  addItem: (productId: number | string, quantity: number, variationId?: number) =>
+  addItem: (productId: number | string, quantity: number, variation?: { attribute: string; value: string }[]) =>
     request('/cart/add-item', {
       method: 'POST',
       body: JSON.stringify({
         id: typeof productId === 'string' ? parseInt(productId, 10) : productId,
         quantity,
-        ...(variationId ? { variation_id: variationId } : {}),
+        ...(variation?.length ? { variation } : {}),
       }),
     }),
 

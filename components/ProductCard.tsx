@@ -77,7 +77,7 @@ export function ProductCard({
           </Link>
 
           {/* Color Variants */}
-          {variants && variants.length > 0 && (
+          {/*{variants && variants.length > 0 && (
             <div className="flex items-center gap-2">
               {variants.map((variant) => (
                 <button
@@ -96,7 +96,7 @@ export function ProductCard({
                 />
               ))}
             </div>
-          )}
+          )}*/}
 
           {/* Price / Actions */}
           <div className="flex items-center justify-between pt-2">
