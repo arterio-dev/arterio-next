@@ -2,21 +2,25 @@
 
 import { useMemo } from "react";
 import { useCategories } from "@/hooks/useCategories";
-import { STORE_INFO } from "@/app/config/store";
+import { getWhatsAppLink, STORE_INFO } from "@/app/config/store";
 
 export function About() {
   const { categories } = useCategories();
 
+  const handleClick = () => {
+    window.open(getWhatsAppLink(), "_blank");
+  }
+
   const hierarchicalCategories = useMemo(() => {
-      if (!categories.length) return [];
-      
-      const parents = categories.filter(c => !c.parent || c.parent === 0);
-      return parents.map(parent => ({
-        id: parent.id,
-        name: parent.name,
-        subcategories: categories.filter(c => c.parent === parent.id)
-      })).filter(cat => cat.name !== "Uncategorized");
-    }, [categories]);
+    if (!categories.length) return [];
+
+    const parents = categories.filter(c => !c.parent || c.parent === 0);
+    return parents.map(parent => ({
+      id: parent.id,
+      name: parent.name,
+      subcategories: categories.filter(c => c.parent === parent.id)
+    })).filter(cat => cat.name !== "Uncategorized");
+  }, [categories]);
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-24">
@@ -36,14 +40,14 @@ export function About() {
           NOSSA HISTÓRIA
         </h2>
         <p className="text-lg leading-relaxed text-black/80">
-          A {STORE_INFO.name} nasceu com o propósito de simplificar o acesso a suprimentos 
-          de qualidade. O que começou como um fornecedor especializado em produção 
-          audiovisual evoluiu para uma loja completa de suprimentos gerais, atendendo 
+          A {STORE_INFO.name} nasceu com o propósito de simplificar o acesso a suprimentos
+          de qualidade. O que começou como um fornecedor especializado em produção
+          audiovisual evoluiu para uma loja completa de suprimentos gerais, atendendo
           às necessidades mais diversas de profissionais e empresas.
         </p>
         <p className="text-lg leading-relaxed text-black/80">
-          Nossa missão é clara: oferecer produtos essenciais com agilidade, 
-          transparência e sem complicações. Acreditamos que simplicidade e 
+          Nossa missão é clara: oferecer produtos essenciais com agilidade,
+          transparência e sem complicações. Acreditamos que simplicidade e
           eficiência são fundamentais em cada transação.
         </p>
       </section>
@@ -59,7 +63,7 @@ export function About() {
               Simplicidade
             </h3>
             <p className="text-sm leading-relaxed text-black/60">
-              Design limpo, navegação intuitiva e processos diretos. 
+              Design limpo, navegação intuitiva e processos diretos.
               Sem complicações desnecessárias.
             </p>
           </div>
@@ -68,7 +72,7 @@ export function About() {
               Qualidade
             </h3>
             <p className="text-sm leading-relaxed text-black/60">
-              Produtos selecionados de marcas confiáveis que 
+              Produtos selecionados de marcas confiáveis que
               atendem aos mais altos padrões.
             </p>
           </div>
@@ -77,7 +81,7 @@ export function About() {
               Agilidade
             </h3>
             <p className="text-sm leading-relaxed text-black/60">
-              Resposta rápida, entregas eficientes e atendimento 
+              Resposta rápida, entregas eficientes e atendimento
               personalizado via WhatsApp.
             </p>
           </div>
@@ -91,7 +95,7 @@ export function About() {
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
           {hierarchicalCategories.map((category) => (
-            <div 
+            <div
               key={category.id}
               className="border border-black/10 p-6 hover:border-black/30 transition-colors"
             >
@@ -112,7 +116,7 @@ export function About() {
           <p className="text-sm text-black/60">
             Entre em contato via WhatsApp para atendimento personalizado.
           </p>
-          <button className="mt-4 inline-block border border-black px-8 py-3 text-sm tracking-wide text-black hover:bg-black hover:text-white transition-colors">
+          <button onClick={handleClick} className="mt-4 inline-block border border-black px-8 py-3 text-sm tracking-wide text-black hover:bg-black hover:text-white transition-colors">
             FALAR NO WHATSAPP
           </button>
         </div>
