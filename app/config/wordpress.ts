@@ -6,4 +6,6 @@ export const WP_CONFIG = {
   cartApiUrl: '/api/cart', 
   storeApiUrl: `/api/wp/wc/store/v1`,
   checkoutUrl: `${wpUrl}/checkout`,
+  // Endpoint custom para session handoff (Cart-Token → cookies PHP)
+  sessionHandoffUrl: `${wpUrl}/session-handoff`,
 };
