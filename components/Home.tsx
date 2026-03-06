@@ -1,36 +1,45 @@
 'use client';
 
+
 import { ArrowRight } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import type { WCProduct } from "@/types/woocommerce";
+import { useCategories } from "@/hooks/useCategories";
+import { useState, useMemo } from "react";
+import { getHierarchicalCategories } from '@/utils/categoriesCleaner';
+
 
 interface HomeProps {
   onNavigate: (page: string) => void;
-  onCategorySelect: (category: string) => void;
+  onCategorySelect: (category: string, categoryName?: string) => void;
   onProductClick?: (product: any) => void;
 }
 
 export function Home({ onNavigate, onCategorySelect, onProductClick }: HomeProps) {
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
+
   // Buscar produtos em destaque da Store API
   const { products: featuredProducts, loading: loadingFeatured } = useProducts({
     featured: true,
     perPage: 3,
   });
 
-  const categories = [
-    { name: "Organização e Fixação", count: "120+ itens" },
-    { name: "Fitas Adesivas", count: "85+ itens" },
-    { name: "Elétrica e Conectores", count: "95+ itens" },
-    { name: "Pilhas e Baterias", count: "45+ itens" },
-    { name: "Químicos e Sprays", count: "60+ itens" },
-    { name: "Papelaria", count: "150+ itens" },
-    { name: "Higiene e Proteção", count: "70+ itens" },
-    { name: "Ferramentas e Set", count: "110+ itens" },
-  ];
+  const { categories } = useCategories();
+
+  const hierarchicalCategories = useMemo(() => getHierarchicalCategories(categories), [categories]);
 
   const handleProductClick = (product: WCProduct) => {
     if (onProductClick) {
       onProductClick(product);
+    }
+  };
+
+  const handleCategoryClick = (categoryId: number, categoryName: string, hasSubcategories: boolean) => {
+    if (!hasSubcategories) {
+      onCategorySelect?.(categoryId.toString(), categoryName);
+      setActiveCategory(null);
+    } else {
+      setActiveCategory(activeCategory === categoryId ? null : categoryId);
     }
   };
 
@@ -71,10 +80,10 @@ export function Home({ onNavigate, onCategorySelect, onProductClick }: HomeProps
         </div>
 
         <div className="grid grid-cols-1 gap-px bg-black/10 md:grid-cols-2 lg:grid-cols-4">
-          {categories.map((category, index) => (
+          {hierarchicalCategories.map((category, index) => (
             <button
-              key={index}
-              onClick={() => onCategorySelect(category.name)}
+              key={category.id}
+              onClick={() => handleCategoryClick(category.id, category.name, category.subcategories.length > 0)}
               className="group bg-white p-8 text-left hover:bg-neutral-50 transition-colors"
             >
               <div className="mb-4 flex items-center justify-between">
@@ -124,8 +133,8 @@ export function Home({ onNavigate, onCategorySelect, onProductClick }: HomeProps
               >
                 <div className="mb-8 aspect-square bg-neutral-100 border border-black/5 group-hover:border-black/20 transition-colors overflow-hidden">
                   {product.image ? (
-                    <img 
-                      src={product.image} 
+                    <img
+                      src={product.image}
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />
@@ -136,11 +145,11 @@ export function Home({ onNavigate, onCategorySelect, onProductClick }: HomeProps
                 </h4>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-black">
-                    R$ {typeof product.price === 'number' 
-                      ? product.price.toFixed(2) 
+                    R$ {typeof product.price === 'number'
+                      ? product.price.toFixed(2)
                       : parseFloat(product.price as any).toFixed(2)}
                   </span>
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                     }}

@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { ChevronDown, Menu } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
+import { getHierarchicalCategories } from "@/utils/categoriesCleaner";
 
 interface CategoryNavProps {
   onCategorySelect?: (id: string, name: string) => void;
@@ -12,23 +13,10 @@ export function CategoryNav({ onCategorySelect }: CategoryNavProps) {
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  // 1. Buscar as categorias da API
   const { categories, loading } = useCategories();
 
-  // 2. Organizar as categorias (Principais e Subcategorias)
-  const hierarchicalCategories = useMemo(() => {
-    if (!categories.length) return [];
-    
-    // Pegar apenas as categorias raiz (parent === 0 ou inexistente)
-    // Opcional: Filtrar a categoria "Sem Categoria" comum do WP (id 15 por ex, ou filtrar pelo nome)
-    const parents = categories.filter(c => !c.parent || c.parent === 0);
-    
-    return parents.map(parent => ({
-      id: parent.id,
-      name: parent.name,
-      subcategories: categories.filter(c => c.parent === parent.id)
-    })).filter(cat => cat.name !== "Sem categoria"); // Ignora a padrão do WP
-  }, [categories]);
+   const hierarchicalCategories = useMemo(() => getHierarchicalCategories(categories), [categories]);
+ 
 
   const handleCategoryHover = (categoryId: number) => {
     setActiveCategory(categoryId);
