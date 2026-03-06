@@ -22,7 +22,7 @@ export function Home({ onNavigate, onCategorySelect, onProductClick }: HomeProps
   // Buscar produtos em destaque da Store API
   const { products: featuredProducts, loading: loadingFeatured } = useProducts({
     featured: true,
-    perPage: 3,
+    perPage: 6,
   });
 
   const { categories } = useCategories();
@@ -109,33 +109,30 @@ export function Home({ onNavigate, onCategorySelect, onProductClick }: HomeProps
 
       {/* Featured Products */}
       <section className="mx-auto max-w-7xl px-6 py-24 border-t border-black/10">
-        <div className="mb-16">
+        <div className="mb-12">
           <h3 className="mb-2 text-sm tracking-wide text-black/40">DESTAQUES</h3>
           <p className="text-2xl tracking-tight text-black">Produtos em Evidência</p>
         </div>
 
         {loadingFeatured ? (
-          <div className="grid grid-cols-1 gap-px bg-black/10 md:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white p-6">
-                <div className="mb-6 aspect-square bg-neutral-100 border border-black/5 animate-pulse" />
-                <div className="h-4 bg-neutral-100 mb-3 animate-pulse" />
-                <div className="flex items-center justify-between">
-                  <div className="h-4 w-20 bg-neutral-100 animate-pulse" />
-                  <div className="h-4 w-16 bg-neutral-100 animate-pulse" />
-                </div>
+          <div className="grid grid-cols-2 gap-px bg-black/10 md:grid-cols-3 lg:grid-cols-5 max-w-5xl">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="bg-white p-4">
+                <div className="mb-4 aspect-square bg-neutral-100 border border-black/5 animate-pulse" />
+                <div className="h-3 bg-neutral-100 mb-2 animate-pulse" />
+                <div className="h-3 w-16 bg-neutral-100 animate-pulse" />
               </div>
             ))}
           </div>
         ) : featuredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 gap-px bg-black/10 md:grid-cols-3">
-            {featuredProducts.slice(0, 3).map((product) => (
+          <div className="grid grid-cols-2 gap-px bg-black/10 md:grid-cols-3 lg:grid-cols-5 max-w-6xl">
+            {featuredProducts.slice(0, 5).map((product) => (
               <div
                 key={product.id}
-                className="group bg-white p-6 cursor-pointer hover:bg-neutral-50 transition-colors"
+                className="group bg-white p-4 cursor-pointer hover:bg-neutral-50 transition-colors"
                 onClick={() => handleProductClick({ ...product, id: Number(product.id), price: String(product.price) })}
               >
-                <div className="mb-6 aspect-square bg-neutral-100 border border-black/5 group-hover:border-black/20 transition-colors overflow-hidden">
+                <div className="mb-4 aspect-square bg-neutral-100 border border-black/5 group-hover:border-black/20 transition-colors overflow-hidden">
                   {product.image ? (
                     <img
                       src={product.image}
@@ -144,24 +141,14 @@ export function Home({ onNavigate, onCategorySelect, onProductClick }: HomeProps
                     />
                   ) : null}
                 </div>
-                <h4 className="mb-3 text-sm tracking-tight text-black group-hover:text-black/60 transition-colors">
+                <h4 className="mb-2 text-xs tracking-tight text-black group-hover:text-black/60 transition-colors line-clamp-2">
                   {product.name}
                 </h4>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-black">
-                    R$ {typeof product.price === 'number'
-                      ? product.price.toFixed(2)
-                      : parseFloat(product.price as any).toFixed(2)}
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    className="text-xs tracking-wide text-black hover:text-black/60 transition-colors"
-                  >
-                    ADICIONAR
-                  </button>
-                </div>
+                <span className="text-xs text-black">
+                  R$ {typeof product.price === 'number'
+                    ? product.price.toFixed(2)
+                    : parseFloat(product.price as any).toFixed(2)}
+                </span>
               </div>
             ))}
           </div>
