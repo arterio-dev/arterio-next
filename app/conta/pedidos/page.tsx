@@ -9,12 +9,11 @@ import Link from 'next/link';
 
 export default function PedidosPage() {
   const [page, setPage] = useState(1);
-  const { orders, isLoading, error } = useOrders(page);
+  const { orders, isLoading, error, totalPages } = useOrders(page);
 
   // Heurística simples: se retornar 10 itens, provavelmente há mais páginas
   // TODO: usar X-WP-TotalPages do response header quando disponível
-  const hasMore = orders.length === 10;
-  const totalPages = hasMore ? page + 1 : page;
+  
 
   if (isLoading) return <OrderSkeleton count={4} />;
 
