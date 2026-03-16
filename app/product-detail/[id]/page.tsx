@@ -14,6 +14,7 @@ import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ToastContainer';
 import { STORE_INFO, getWhatsAppLink } from '@/app/config/store';
+import { decodeHTMLEntities } from '@/utils/formatters';
 
 interface ProductDetailPageProps {
   params: {
@@ -310,13 +311,13 @@ export default function ProductDetailPage() {
                 {variationImage ? (
                   <img
                     src={variationImage.src}
-                    alt={variationImage.alt || product.name}
+                    alt={variationImage.alt || (decodeHTMLEntities(product.name))}
                     className="h-full w-full object-cover"
                   />
                 ) : product.images && product.images.length > 0 ? (
                   <img
                     src={product.images[selectedImage]?.src}
-                    alt={product.images[selectedImage]?.alt || product.name}
+                    alt={product.images[selectedImage]?.alt || (decodeHTMLEntities(product.name))}
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -365,7 +366,7 @@ export default function ProductDetailPage() {
               {/* Title */}
               <div>
                 <h1 className="text-2xl lg:text-3xl tracking-tight text-black mb-2">
-                  {product.name}
+                  {decodeHTMLEntities(product.name)}
                 </h1>
                 {/* SKU — mostra o da variação se seleccionada */}
               {(selectedVariation?.sku || product.sku) && (
@@ -616,7 +617,7 @@ export default function ProductDetailPage() {
       {/* Notify Me Modal */}
       <NotifyMeModal
         isOpen={isNotifyModalOpen}
-        productName={product.name}
+        productName={decodeHTMLEntities(product.name)}
         onClose={() => setIsNotifyModalOpen(false)}
       />
 
