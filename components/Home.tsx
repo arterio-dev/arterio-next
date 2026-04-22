@@ -68,7 +68,7 @@ export function Home({ onNavigate, heroImageUrl, onCategorySelect, onProductClic
           </div>
           <div className="aspect-[4/3] bg-neutral-100 overflow-hidden">
             <img
-              src={heroImageUrl}
+              src={STORE_INFO.hero}
               alt="Suprimentos para Produção Audiovisual"
               className="w-full h-full object-cover"
               fetchPriority="high"
