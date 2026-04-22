@@ -16,7 +16,7 @@ interface HomeProps {
   onProductClick?: (product: any) => void;
 }
 
-export function Home({ onNavigate, heroImageUrl, onCategorySelect, onProductClick }: HomeProps) {
+export function Home({ onNavigate, onCategorySelect, onProductClick }: HomeProps) {
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
   // Buscar produtos em destaque da Store API
