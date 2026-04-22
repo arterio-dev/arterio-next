@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import type { WCProduct } from "@/types/woocommerce";
 import { useCategories } from "@/hooks/useCategories";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getHierarchicalCategories } from '@/utils/categoriesCleaner';
 import { STORE_INFO } from "@/app/config/store";
 
