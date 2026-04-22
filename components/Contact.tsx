@@ -83,73 +83,7 @@ export function Contact() {
           </div>
         </div>
 
-        {/* Contact Form */}
-        <div>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-xs tracking-wide text-black mb-2">
-                NOME *
-              </label>
-              <input
-                type="text"
-                id="name"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full border border-black/10 px-4 py-3 text-sm text-black focus:border-black focus:outline-none transition-colors"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-xs tracking-wide text-black mb-2">
-                EMAIL *
-              </label>
-              <input
-                type="email"
-                id="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full border border-black/10 px-4 py-3 text-sm text-black focus:border-black focus:outline-none transition-colors"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="subject" className="block text-xs tracking-wide text-black mb-2">
-                ASSUNTO *
-              </label>
-              <input
-                type="text"
-                id="subject"
-                required
-                value={formData.subject}
-                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                className="w-full border border-black/10 px-4 py-3 text-sm text-black focus:border-black focus:outline-none transition-colors"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="message" className="block text-xs tracking-wide text-black mb-2">
-                MENSAGEM *
-              </label>
-              <textarea
-                id="message"
-                required
-                rows={6}
-                value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                className="w-full border border-black/10 px-4 py-3 text-sm text-black focus:border-black focus:outline-none transition-colors resize-none"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-black px-8 py-4 text-sm tracking-wide text-white hover:bg-black/90 transition-colors"
-            >
-              ENVIAR MENSAGEM
-            </button>
-          </form>
-        </div>
+      
       </div>
     </main>
   );
