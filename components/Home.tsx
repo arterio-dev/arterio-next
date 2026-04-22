@@ -50,8 +50,7 @@ export function Home({ onNavigate, onCategorySelect, onProductClick }: HomeProps
               {STORE_INFO.tagline}
             </h2>
             <p className="mb-12 text-lg text-black/60 leading-relaxed max-w-xl">
-              Soluções completas em materiais técnicos e suprimentos
-              profissionais para cinema, TV e fotografia.
+              {STORE_INFO.line}
             </p>
             <button
               onClick={() => onNavigate("products")}
