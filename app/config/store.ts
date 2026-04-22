@@ -5,7 +5,8 @@
 
 export const STORE_INFO = {
   name: 'Arterio',
-  tagline: 'Equipamentos para Produção Audiovisual',
+  tagline: 'Suprimentos para Produção Audiovisual',
+  line: 'Soluções completas em materiais técnicos e produtos profissionais para cinema, shows, TV e teatro',
   
   // Contato
   phones: [
