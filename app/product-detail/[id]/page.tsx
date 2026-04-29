@@ -42,7 +42,14 @@ export default function ProductDetailPage() {
   const productId = params?.id as string;
 
   const handleCategorySelect = (selectedCategory: string) => {
+    // NÃO usar esta função para navegação de categoria
+    // Usar handleNavigateToCategory em vez disso
     router.push(`/products?category=${encodeURIComponent(selectedCategory)}`);
+  };
+
+  const handleNavigateToCategory = (categoryId: string, categoryName: string) => {
+    // Navega para a página de produtos com os parâmetros corretos
+    router.push(`/products?categoryId=${categoryId}&categoryName=${encodeURIComponent(categoryName)}`);
   };
 
   const navigateTo = (page: string) => {
@@ -368,7 +375,7 @@ export default function ProductDetailPage() {
                     onClick={() => {
                       const categoryId = product.categories[0].id.toString();
                       const categoryNameFull = product.categories[0].name;
-                      handleCategorySelect(categoryId);
+                      handleNavigateToCategory(categoryId, categoryNameFull);
                     }}
                     className="text-xs tracking-wide text-black/60 underline hover:text-black transition-colors"
                     title={`Ver todos os produtos de ${categoryName}`}
