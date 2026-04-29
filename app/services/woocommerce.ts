@@ -18,13 +18,23 @@ async function storeRequest<T>(endpoint: string, options: RequestInit = {}): Pro
       },
     });
 
+    // Se receber 401 ou 403, limpar o token de sessão corrompido
+    if (response.status === 401 || response.status === 403) {
+      console.warn(`[storeRequest] Received ${response.status} - clearing invalid session token`);
+      // Limpar o token inválido do localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('arterio_cart_token');
+        localStorage.removeItem('arterio_nonce');
+      }
+    }
+
     if (!response.ok) {
       throw new Error(`Store API Error: ${response.status} ${response.statusText}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Store API Error:', error);
+    console.error('[storeRequest] Error:', error);
     throw error;
   }
 }
@@ -54,23 +64,42 @@ export const productService = {
 
     let hasMore = true;
     while (hasMore) {
-      const queryParams = new URLSearchParams();
-      queryParams.append('per_page', perPage.toString());
-      queryParams.append('page', page.toString());
-      if (params?.category) queryParams.append('category', params.category);
-      if (params?.search) queryParams.append('search', params.search);
-      if (params?.featured !== undefined) queryParams.append('featured', params.featured.toString());
-      
-      const pageProducts = await storeRequest<any[]>(`/products?${queryParams.toString()}`);
-      
-      if (pageProducts.length === 0) {
-        hasMore = false;
-      } else {
-        allProducts.push(...pageProducts);
-        page++;
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append('per_page', perPage.toString());
+        queryParams.append('page', page.toString());
+        
+        // CORREÇÃO: validar que category é uma string não-vazia antes de enviar
+        if (params?.category && params.category.trim() !== '') {
+          queryParams.append('category', params.category.trim());
+        }
+        
+        // CORREÇÃO: validar search também
+        if (params?.search && params.search.trim() !== '') {
+          queryParams.append('search', params.search.trim());
+        }
+        
+        if (params?.featured !== undefined) {
+          queryParams.append('featured', params.featured.toString());
+        }
+        
+        console.debug(`[productService] Fetching page ${page}`, Object.fromEntries(queryParams));
+        
+        const pageProducts = await storeRequest<any[]>(`/products?${queryParams.toString()}`);
+        
+        if (pageProducts.length === 0) {
+          hasMore = false;
+        } else {
+          allProducts.push(...pageProducts);
+          page++;
+        }
+      } catch (error) {
+        console.error(`[productService] Error on page ${page}:`, error);
+        throw error; // Propaga o erro para que useProducts trate
       }
     }
 
+    console.debug(`[productService] Total products fetched: ${allProducts.length}`);
     return allProducts;
   },
 
@@ -97,6 +126,7 @@ export function mapWCProductToLocal(storeProduct: any): Product {
     name: decodeHTMLEntities(storeProduct.name),
     price: price,
     category: decodeHTMLEntities(storeProduct.categories?.[0]?.name || 'Sem Categoria'),
+    categoryId: storeProduct.categories?.[0]?.id?.toString(), // Adiciona o ID da categoria
     inStock: storeProduct.is_in_stock, 
     image: storeProduct.images?.[0]?.src,
     sku: storeProduct.sku,

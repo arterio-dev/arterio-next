@@ -64,7 +64,14 @@ export function ProductListing({ onNotifyMe, selectedCategoryId, selectedCategor
 
           <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 sm:gap-x-8 sm:gap-y-16">
             {currentProducts.map((product) => (
-              <ProductCard key={product.id} {...product} onNotifyMe={onNotifyMe} onAddToCart={onAddToCart} onProductClick={onProductClick} />
+              <ProductCard 
+                key={product.id} 
+                {...product} 
+                onNotifyMe={onNotifyMe} 
+                onAddToCart={onAddToCart} 
+                onProductClick={onProductClick}
+                onCategoryNavigate={onCategorySelect}
+              />
             ))}
           </div>
           

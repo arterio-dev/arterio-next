@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ChevronRight } from 'lucide-react';
 import type { WCProduct } from "@/types/woocommerce";
 import { decodeHTMLEntities } from "@/utils/formatters";
 
@@ -12,12 +13,14 @@ interface ProductCardProps {
   price?: number;
   priceOnRequest?: boolean;
   category: string;
+  categoryId?: string; // ID da categoria para navegação
   inStock: boolean;
   image?: string;
   variants?: { name: string; value: string }[];
   onProductClick?: (product: WCProduct) => void;
   onNotifyMe: (productName: string) => void;
   onAddToCart?: (product: { id: string; name: string; price?: number; category: string; inStock: boolean }) => void;
+  onCategoryNavigate?: (categoryId: string, categoryName: string) => void;
 }
 
 export function ProductCard({
@@ -27,12 +30,14 @@ export function ProductCard({
   price,
   priceOnRequest,
   category,
+  categoryId,
   inStock,
   image,
   variants,
   onNotifyMe,
   onAddToCart,
-  onProductClick
+  onProductClick,
+  onCategoryNavigate
 }: ProductCardProps) {
   const [selectedVariant, setSelectedVariant] = useState(variants?.[0]?.value || "");
 
@@ -69,12 +74,29 @@ export function ProductCard({
 
         {/* Product Info */}
         <div className="space-y-3">
-          <Link href={PRODUCT_URL} className="block">
-            <p className="mb-1 text-xs tracking-wide text-black/40">{category}</p>
-            <h3 className="text-sm tracking-tight text-black group-hover:text-black/60 transition-colors">
-              {cleanName}
-            </h3>
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link href={PRODUCT_URL} className="flex-1 block">
+              <p className="mb-1 text-xs tracking-wide text-black/40">{category}</p>
+              <h3 className="text-sm tracking-tight text-black group-hover:text-black/60 transition-colors">
+                {cleanName}
+              </h3>
+            </Link>
+            
+            {/* Link para navegar para a categoria */}
+            {categoryId && onCategoryNavigate && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onCategoryNavigate(categoryId, category);
+                }}
+                className="ml-2 p-1 text-black/40 hover:text-black transition-colors"
+                title={`Ver todos os produtos de ${category}`}
+                aria-label={`Navegar para categoria ${category}`}
+              >
+                <ChevronRight size={16} />
+              </button>
+            )}
+          </div>
 
           {/* Color Variants */}
           {/*{variants && variants.length > 0 && (

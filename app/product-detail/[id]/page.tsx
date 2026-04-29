@@ -361,7 +361,22 @@ export default function ProductDetailPage() {
             {/* Product Info */}
             <div className="space-y-8">
               {/* Category */}
-              <p className="text-xs tracking-wide text-black/40">{categoryName}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs tracking-wide text-black/40">{categoryName}</p>
+                {product.categories?.[0]?.id && (
+                  <button
+                    onClick={() => {
+                      const categoryId = product.categories[0].id.toString();
+                      const categoryNameFull = product.categories[0].name;
+                      handleCategorySelect(categoryId);
+                    }}
+                    className="text-xs tracking-wide text-black/60 underline hover:text-black transition-colors"
+                    title={`Ver todos os produtos de ${categoryName}`}
+                  >
+                    Ver Categoria
+                  </button>
+                )}
+              </div>
 
               {/* Title */}
               <div>

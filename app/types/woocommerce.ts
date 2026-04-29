@@ -132,6 +132,7 @@ export interface Product {
   name: string;
   price: number;
   category: string;
+  categoryId?: string; // ID da categoria para navegação
   inStock: boolean;
   image?: string;
   variants?: ProductVariant[];

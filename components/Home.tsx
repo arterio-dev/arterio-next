@@ -132,26 +132,45 @@ export function Home({ onNavigate, onCategorySelect, onProductClick }: HomeProps
             {featuredProducts.slice(0, 5).map((product) => (
               <div
                 key={product.id}
-                className="group bg-white p-4 cursor-pointer hover:bg-neutral-50 transition-colors"
-                onClick={() => handleProductClick({ ...product, id: Number(product.id), price: String(product.price) })}
+                className="group bg-white p-4 relative"
               >
-                <div className="mb-4 aspect-square bg-neutral-100 border border-black/5 group-hover:border-black/20 transition-colors overflow-hidden">
-                  {product.image ? (
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : null}
-                </div>
-                <h4 className="mb-2 text-xs tracking-tight text-black group-hover:text-black/60 transition-colors line-clamp-2">
-                  {product.name}
-                </h4>
-                <span className="text-xs text-black">
-                  R$ {typeof product.price === 'number'
-                    ? product.price.toFixed(2)
-                    : parseFloat(product.price as any).toFixed(2)}
-                </span>
+                <button
+                  onClick={() => handleProductClick({ ...product, id: Number(product.id), price: String(product.price) })}
+                  className="block w-full cursor-pointer hover:bg-neutral-50 transition-colors"
+                >
+                  <div className="mb-4 aspect-square bg-neutral-100 border border-black/5 group-hover:border-black/20 transition-colors overflow-hidden">
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : null}
+                  </div>
+                  <h4 className="mb-2 text-xs tracking-tight text-black group-hover:text-black/60 transition-colors line-clamp-2">
+                    {product.name}
+                  </h4>
+                  <span className="text-xs text-black">
+                    R$ {typeof product.price === 'number'
+                      ? product.price.toFixed(2)
+                      : parseFloat(product.price as any).toFixed(2)}
+                  </span>
+                </button>
+                
+                {/* Link para categoria */}
+                {product.categoryId && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCategoryClick(Number(product.categoryId), product.category);
+                    }}
+                    className="absolute top-2 right-2 p-1 bg-white/80 rounded hover:bg-white transition-colors text-black/40 hover:text-black"
+                    title={`Ver todos os produtos de ${product.category}`}
+                    aria-label={`Navegar para categoria ${product.category}`}
+                  >
+                    <ArrowRight size={14} />
+                  </button>
+                )}
               </div>
             ))}
           </div>

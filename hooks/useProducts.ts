@@ -31,6 +31,8 @@ export function useProducts(options: UseProductsOptions = {}) {
         setLoading(true);
         setError(null);
 
+        console.debug('[useProducts] Fetching with params:', { category, search, featured });
+
         // 1. Buscamos os produtos à API com paginação automática
         // O parâmetro category é passado direto à Store API
         const wcProducts = await productService.getAll({
@@ -44,11 +46,13 @@ export function useProducts(options: UseProductsOptions = {}) {
           // 2. Mapeamos os produtos para o formato local
           const localProducts = mapWCProductsToLocal(wcProducts);
           setProducts(localProducts);
+          console.debug('[useProducts] Success:', localProducts.length, 'products loaded');
         }
       } catch (err) {
         if (isMounted) {
+          const errorMsg = err instanceof Error ? err.message : String(err);
+          console.error('[useProducts] Error:', errorMsg, err);
           setError(err instanceof Error ? err : new Error('Failed to fetch products'));
-          console.error('Error fetching products:', err);
         }
       } finally {
         if (isMounted) {
