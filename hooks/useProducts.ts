@@ -7,7 +7,6 @@ import type { Product } from '@/app/types/woocommerce';
 interface UseProductsOptions {
   category?: string; // Este é o ID da categoria que vem da URL
   search?: string;
-  perPage?: number;
   featured?: boolean;
   enabled?: boolean;
 }
@@ -17,7 +16,7 @@ export function useProducts(options: UseProductsOptions = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const { category, search, perPage = 100, featured, enabled = true } = options;
+  const { category, search, featured, enabled = true } = options;
 
   useEffect(() => {
     if (!enabled) {
@@ -32,22 +31,17 @@ export function useProducts(options: UseProductsOptions = {}) {
         setLoading(true);
         setError(null);
 
-        // 1. Buscamos os produtos à API (sem enviar a categoria para evitar bugs da Store API)
-        let wcProducts = await productService.getAll({
-          per_page: perPage,
+        // 1. Buscamos os produtos à API com paginação automática
+        // O parâmetro category é passado direto à Store API
+        const wcProducts = await productService.getAll({
+          category,
           search,
           featured,
+          fetchAll: true, // Ativa paginação automática para buscar TODOS os produtos
         });
 
         if (isMounted) {
-          // 2. Filtramos a lista localmente usando o ID numérico exato do WooCommerce
-          if (category) {
-            wcProducts = wcProducts.filter((wcProduct: any) => 
-              wcProduct.categories?.some((cat: any) => cat.id.toString() === category)
-            );
-          }
-
-          // 3. Mapeamos apenas os produtos filtrados para o ecrã
+          // 2. Mapeamos os produtos para o formato local
           const localProducts = mapWCProductsToLocal(wcProducts);
           setProducts(localProducts);
         }
@@ -68,7 +62,7 @@ export function useProducts(options: UseProductsOptions = {}) {
     return () => {
       isMounted = false;
     };
-  }, [category, search, perPage, featured, enabled]);
+  }, [category, search, featured, enabled]);
 
 
   return { products, loading, error };

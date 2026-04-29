@@ -23,11 +23,10 @@ const PRODUCTS_PER_PAGE = 12;
 export function ProductListing({ onNotifyMe, selectedCategoryId, selectedCategoryName, onClearCategory, onCategorySelect, onAddToCart, onProductClick, searchTerm = "" }: ProductListingProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Usa o categoryId para filtrar
+  // Usa o categoryId para filtrar (passa direto à API com paginação automática)
   const { products: filteredProducts, loading, error } = useProducts({
     category: selectedCategoryId || undefined,
     search: searchTerm || undefined,
-    perPage: 100
   });
 
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);

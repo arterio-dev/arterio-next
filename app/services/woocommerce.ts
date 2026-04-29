@@ -30,7 +30,12 @@ async function storeRequest<T>(endpoint: string, options: RequestInit = {}): Pro
 }
 
 export const productService = {
-  async getAll(params?: { per_page?: number; page?: number; category?: string; search?: string; featured?: boolean }): Promise<any[]> {
+  async getAll(params?: { per_page?: number; page?: number; category?: string; search?: string; featured?: boolean; fetchAll?: boolean }): Promise<any[]> {
+    // Se fetchAll=true e nenhuma paginação foi especificada, busca TODOS os produtos com paginação automática
+    if (params?.fetchAll && !params?.page) {
+      return this.getAllPaginated(params);
+    }
+
     const queryParams = new URLSearchParams();
     
     if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
@@ -40,6 +45,33 @@ export const productService = {
     if (params?.featured !== undefined) queryParams.append('featured', params.featured.toString());
     
     return storeRequest<any[]>(`/products?${queryParams.toString()}`);
+  },
+
+  async getAllPaginated(params?: { category?: string; search?: string; featured?: boolean }): Promise<any[]> {
+    const allProducts: any[] = [];
+    let page = 1;
+    const perPage = 100; // máximo permitido pela Store API
+
+    let hasMore = true;
+    while (hasMore) {
+      const queryParams = new URLSearchParams();
+      queryParams.append('per_page', perPage.toString());
+      queryParams.append('page', page.toString());
+      if (params?.category) queryParams.append('category', params.category);
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.featured !== undefined) queryParams.append('featured', params.featured.toString());
+      
+      const pageProducts = await storeRequest<any[]>(`/products?${queryParams.toString()}`);
+      
+      if (pageProducts.length === 0) {
+        hasMore = false;
+      } else {
+        allProducts.push(...pageProducts);
+        page++;
+      }
+    }
+
+    return allProducts;
   },
 
   async getById(id: number): Promise<any> {
