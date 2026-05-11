@@ -5,7 +5,8 @@ import { productService, mapWCProductsToLocal } from '@/app/services/woocommerce
 import type { Product } from '@/app/types/woocommerce';
 
 interface UseProductsOptions {
-  category?: string; // Este é o ID da categoria que vem da URL
+  categoryId?: string; // The category ID for filtering
+  categoryName?: string; // The category name for fallback filtering
   search?: string;
   featured?: boolean;
   enabled?: boolean;
@@ -16,7 +17,7 @@ export function useProducts(options: UseProductsOptions = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const { category, search, featured, enabled = true } = options;
+  const { categoryId, categoryName, search, featured, enabled = true } = options;
 
   useEffect(() => {
     if (!enabled) {
@@ -31,7 +32,7 @@ export function useProducts(options: UseProductsOptions = {}) {
         setLoading(true);
         setError(null);
 
-        console.debug('[useProducts] Fetching with params:', { category, search, featured });
+        console.debug('[useProducts] Fetching with params:', { categoryId, categoryName, search, featured });
 
         // 1. Fetch products from the API (with paginação automática if fetchAll is true)
         // NOTE: category filtering is NOT sent to the API (WooCommerce bug)
@@ -46,14 +47,25 @@ export function useProducts(options: UseProductsOptions = {}) {
           let localProducts = mapWCProductsToLocal(wcProducts);
           
           // 3. Apply client-side category filtering
-          if (category && category.trim() !== '') {
+          if (categoryId || categoryName) {
             localProducts = localProducts.filter(product => {
-              // Use categoryId if available, otherwise try to match by name
-              if (product.categoryId) {
-                return product.categoryId === category;
+              // First try to match by categoryId
+              if (categoryId && product.categoryId) {
+                if (product.categoryId === categoryId) {
+                  return true;
+                }
               }
-              // Fallback to category name matching (in case categoryId is not available)
-              return product.category.toLowerCase() === category.toLowerCase();
+              
+              // Fallback to category name matching
+              if (categoryName && product.category) {
+                // Case-insensitive name matching
+                if (product.category.toLowerCase() === categoryName.toLowerCase()) {
+                  return true;
+                }
+              }
+              
+              // If both are provided, match either one (OR logic)
+              return false;
             });
           }
           
@@ -78,7 +90,7 @@ export function useProducts(options: UseProductsOptions = {}) {
     return () => {
       isMounted = false;
     };
-  }, [category, search, featured, enabled]);
+  }, [categoryId, categoryName, search, featured, enabled]);
 
 
   return { products, loading, error };

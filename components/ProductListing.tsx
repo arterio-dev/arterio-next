@@ -23,9 +23,11 @@ const PRODUCTS_PER_PAGE = 12;
 export function ProductListing({ onNotifyMe, selectedCategoryId, selectedCategoryName, onClearCategory, onCategorySelect, onAddToCart, onProductClick, searchTerm = "" }: ProductListingProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Usa o categoryId para filtrar (passa direto à API com paginação automática)
+  // Passa tanto categoryId quanto categoryName para filtering mais robusto
+  // categoryName é usado como fallback se categoryId não encontrar produtos
   const { products: filteredProducts, loading, error } = useProducts({
-    category: selectedCategoryId || undefined,
+    categoryId: selectedCategoryId || undefined,
+    categoryName: selectedCategoryName || undefined,
     search: searchTerm || undefined,
   });
 

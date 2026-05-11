@@ -34,7 +34,6 @@ export function Header({ onCartClick, cartItemCount = 0, onNavigate, onSearch }:
     e.preventDefault();
     if (searchTerm.trim()) {
       onSearch?.(searchTerm);
-      onNavigate?.("products");
       setIsSearchOpen(false);
       setIsMobileMenuOpen(false);
     }
@@ -42,18 +41,12 @@ export function Header({ onCartClick, cartItemCount = 0, onNavigate, onSearch }:
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    if (value.trim()) {
-      onSearch?.(value);
-    } else {
-      onSearch?.("");
-    }
   };
 
   const toggleSearch = () => {
     setIsSearchOpen(!isSearchOpen);
     if (!isSearchOpen) {
       setSearchTerm("");
-      onSearch?.("");
     }
   };
 

@@ -40,7 +40,7 @@ async function storeRequest<T>(endpoint: string, options: RequestInit = {}): Pro
 }
 
 export const productService = {
-  async getAll(params?: { per_page?: number; page?: number; category?: string; search?: string; featured?: boolean; fetchAll?: boolean }): Promise<any[]> {
+  async getAll(params?: { per_page?: number; page?: number; categoryId?: string; categoryName?: string; search?: string; featured?: boolean; fetchAll?: boolean }): Promise<any[]> {
     // If fetchAll=true and no pagination was specified, fetch ALL products with automatic pagination
     if (params?.fetchAll && !params?.page) {
       return this.getAllPaginated(params);
@@ -60,7 +60,7 @@ export const productService = {
     return storeRequest<any[]>(`/products?${queryParams.toString()}`);
   },
 
-  async getAllPaginated(params?: { category?: string; search?: string; featured?: boolean }): Promise<any[]> {
+  async getAllPaginated(params?: { categoryId?: string; categoryName?: string; search?: string; featured?: boolean }): Promise<any[]> {
     const allProducts: any[] = [];
     let page = 1;
     const perPage = 100; // máximo permitido pela Store API
@@ -90,11 +90,23 @@ export const productService = {
         
         // Filter by category client-side if category is specified
         let filteredProducts = pageProducts;
-        if (params?.category && params.category.trim() !== '') {
-          const categoryId = params.category.trim();
+        if (params?.categoryId || params?.categoryName) {
           filteredProducts = pageProducts.filter(product => {
-            // Check if product has the category
-            return product.categories?.some((cat: any) => cat.id.toString() === categoryId);
+            // First try to match by categoryId if provided
+            if (params.categoryId) {
+              const categoryMatch = product.categories?.some((cat: any) => cat.id.toString() === params.categoryId);
+              if (categoryMatch) return true;
+            }
+            
+            // Fallback to category name matching if provided
+            if (params.categoryName && product.categories && product.categories.length > 0) {
+              const nameMatch = product.categories.some((cat: any) => 
+                cat.name.toLowerCase() === params.categoryName!.toLowerCase()
+              );
+              if (nameMatch) return true;
+            }
+            
+            return false;
           });
         }
         
