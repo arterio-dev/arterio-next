@@ -33,20 +33,32 @@ export function useProducts(options: UseProductsOptions = {}) {
 
         console.debug('[useProducts] Fetching with params:', { category, search, featured });
 
-        // 1. Buscamos os produtos à API com paginação automática
-        // O parâmetro category é passado direto à Store API
+        // 1. Fetch products from the API (with paginação automática if fetchAll is true)
+        // NOTE: category filtering is NOT sent to the API (WooCommerce bug)
         const wcProducts = await productService.getAll({
-          category,
           search,
           featured,
           fetchAll: true, // Ativa paginação automática para buscar TODOS os produtos
         });
 
         if (isMounted) {
-          // 2. Mapeamos os produtos para o formato local
-          const localProducts = mapWCProductsToLocal(wcProducts);
+          // 2. Map to local format
+          let localProducts = mapWCProductsToLocal(wcProducts);
+          
+          // 3. Apply client-side category filtering
+          if (category && category.trim() !== '') {
+            localProducts = localProducts.filter(product => {
+              // Use categoryId if available, otherwise try to match by name
+              if (product.categoryId) {
+                return product.categoryId === category;
+              }
+              // Fallback to category name matching (in case categoryId is not available)
+              return product.category.toLowerCase() === category.toLowerCase();
+            });
+          }
+          
           setProducts(localProducts);
-          console.debug('[useProducts] Success:', localProducts.length, 'products loaded');
+          console.debug('[useProducts] Success:', localProducts.length, 'products loaded after filtering');
         }
       } catch (err) {
         if (isMounted) {

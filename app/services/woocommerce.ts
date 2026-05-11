@@ -41,7 +41,7 @@ async function storeRequest<T>(endpoint: string, options: RequestInit = {}): Pro
 
 export const productService = {
   async getAll(params?: { per_page?: number; page?: number; category?: string; search?: string; featured?: boolean; fetchAll?: boolean }): Promise<any[]> {
-    // Se fetchAll=true e nenhuma paginação foi especificada, busca TODOS os produtos com paginação automática
+    // If fetchAll=true and no pagination was specified, fetch ALL products with automatic pagination
     if (params?.fetchAll && !params?.page) {
       return this.getAllPaginated(params);
     }
@@ -50,7 +50,10 @@ export const productService = {
     
     if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
     if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.category) queryParams.append('category', params.category);
+    
+    // NOTE: Do NOT send category to the API — WooCommerce Store API has a bug with the category param
+    // Category filtering is done client-side
+    
     if (params?.search) queryParams.append('search', params.search);
     if (params?.featured !== undefined) queryParams.append('featured', params.featured.toString());
     
@@ -69,12 +72,10 @@ export const productService = {
         queryParams.append('per_page', perPage.toString());
         queryParams.append('page', page.toString());
         
-        // CORREÇÃO: validar que category é uma string não-vazia antes de enviar
-        if (params?.category && params.category.trim() !== '') {
-          queryParams.append('category', params.category.trim());
-        }
+        // NOTE: Do NOT send category to the API — WooCommerce Store API has a bug with the category param
+        // Category filtering is done client-side in useProducts
         
-        // CORREÇÃO: validar search também
+        // CORREÇÃO: validar search - search works server-side, so we can send it
         if (params?.search && params.search.trim() !== '') {
           queryParams.append('search', params.search.trim());
         }
@@ -87,10 +88,20 @@ export const productService = {
         
         const pageProducts = await storeRequest<any[]>(`/products?${queryParams.toString()}`);
         
+        // Filter by category client-side if category is specified
+        let filteredProducts = pageProducts;
+        if (params?.category && params.category.trim() !== '') {
+          const categoryId = params.category.trim();
+          filteredProducts = pageProducts.filter(product => {
+            // Check if product has the category
+            return product.categories?.some((cat: any) => cat.id.toString() === categoryId);
+          });
+        }
+        
         if (pageProducts.length === 0) {
           hasMore = false;
         } else {
-          allProducts.push(...pageProducts);
+          allProducts.push(...filteredProducts);
           page++;
         }
       } catch (error) {
