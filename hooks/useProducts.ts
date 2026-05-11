@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { productService, mapWCProductsToLocal } from '@/app/services/woocommerce';
+import { useCategories } from './useCategories';
 import type { Product } from '@/app/types/woocommerce';
 
 interface UseProductsOptions {
@@ -18,6 +19,9 @@ export function useProducts(options: UseProductsOptions = {}) {
   const [error, setError] = useState<Error | null>(null);
 
   const { categoryId, categoryName, search, featured, enabled = true } = options;
+  
+  // Fetch all categories to understand hierarchy
+  const { categories } = useCategories();
 
   useEffect(() => {
     if (!enabled) {
@@ -40,6 +44,9 @@ export function useProducts(options: UseProductsOptions = {}) {
           search,
           featured,
           fetchAll: true, // Ativa paginação automática para buscar TODOS os produtos
+          categoryId,
+          categoryName,
+          allCategories: categories, // Pass categories to understand hierarchy
         });
 
         if (isMounted) {
@@ -48,10 +55,26 @@ export function useProducts(options: UseProductsOptions = {}) {
           
           // 3. Apply client-side category filtering
           if (categoryId || categoryName) {
+            // Build a set of category IDs to match, including parent categories
+            const categoryIdsToMatch = new Set<string>();
+            
+            if (categoryId) {
+              categoryIdsToMatch.add(categoryId);
+              
+              // If this is a subcategory, also include its parent category
+              if (categories && categories.length > 0) {
+                const selectedCat = categories.find(c => c.id.toString() === categoryId);
+                if (selectedCat && selectedCat.parent) {
+                  // Add the parent category to the match set
+                  categoryIdsToMatch.add(selectedCat.parent.toString());
+                }
+              }
+            }
+            
             localProducts = localProducts.filter(product => {
-              // First try to match by categoryId
-              if (categoryId && product.categoryId) {
-                if (product.categoryId === categoryId) {
+              // First try to match by categoryId if provided
+              if (categoryIdsToMatch.size > 0 && product.categoryId) {
+                if (categoryIdsToMatch.has(product.categoryId)) {
                   return true;
                 }
               }
@@ -90,7 +113,7 @@ export function useProducts(options: UseProductsOptions = {}) {
     return () => {
       isMounted = false;
     };
-  }, [categoryId, categoryName, search, featured, enabled]);
+  }, [categoryId, categoryName, search, featured, enabled, categories]);
 
 
   return { products, loading, error };

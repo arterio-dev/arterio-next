@@ -40,7 +40,7 @@ async function storeRequest<T>(endpoint: string, options: RequestInit = {}): Pro
 }
 
 export const productService = {
-  async getAll(params?: { per_page?: number; page?: number; categoryId?: string; categoryName?: string; search?: string; featured?: boolean; fetchAll?: boolean }): Promise<any[]> {
+  async getAll(params?: { per_page?: number; page?: number; categoryId?: string; categoryName?: string; search?: string; featured?: boolean; fetchAll?: boolean; allCategories?: any[] }): Promise<any[]> {
     // If fetchAll=true and no pagination was specified, fetch ALL products with automatic pagination
     if (params?.fetchAll && !params?.page) {
       return this.getAllPaginated(params);
@@ -60,7 +60,7 @@ export const productService = {
     return storeRequest<any[]>(`/products?${queryParams.toString()}`);
   },
 
-  async getAllPaginated(params?: { categoryId?: string; categoryName?: string; search?: string; featured?: boolean }): Promise<any[]> {
+  async getAllPaginated(params?: { categoryId?: string; categoryName?: string; search?: string; featured?: boolean; allCategories?: any[] }): Promise<any[]> {
     const allProducts: any[] = [];
     let page = 1;
     const perPage = 100; // máximo permitido pela Store API
@@ -91,10 +91,28 @@ export const productService = {
         // Filter by category client-side if category is specified
         let filteredProducts = pageProducts;
         if (params?.categoryId || params?.categoryName) {
+          // Build a set of category IDs to match, including parent categories
+          const categoryIdsToMatch = new Set<string>();
+          
+          if (params.categoryId) {
+            categoryIdsToMatch.add(params.categoryId);
+            
+            // If this is a subcategory, also include its parent category
+            if (params.allCategories && params.allCategories.length > 0) {
+              const selectedCat = params.allCategories.find(c => c.id.toString() === params.categoryId);
+              if (selectedCat && selectedCat.parent) {
+                // Add the parent category to the match set
+                categoryIdsToMatch.add(selectedCat.parent.toString());
+              }
+            }
+          }
+          
           filteredProducts = pageProducts.filter(product => {
             // First try to match by categoryId if provided
-            if (params.categoryId) {
-              const categoryMatch = product.categories?.some((cat: any) => cat.id.toString() === params.categoryId);
+            if (categoryIdsToMatch.size > 0) {
+              const categoryMatch = product.categories?.some((cat: any) => 
+                categoryIdsToMatch.has(cat.id.toString())
+              );
               if (categoryMatch) return true;
             }
             
