@@ -130,16 +130,32 @@ export const cartApi = {
    * Adiciona item ao carrinho.
    * FIX: garante que o productId é sempre enviado como número inteiro.
    * A Store API do WooCommerce espera um inteiro no campo "id".
+   * 
+   * Para produtos com variações, filtra atributos vazios para evitar o erro
+   * "Parâmetro(s) inválido(s): variation" que ocorre quando enviamos atributos
+   * com value vazio ou inválido.
    */
-  addItem: (productId: number | string, quantity: number, variation?: { attribute: string; value: string }[]) =>
-    request('/cart/add-item', {
+  addItem: (productId: number | string, quantity: number, variation?: { attribute: string; value: string }[]) => {
+    const payload: any = {
+      id: typeof productId === 'string' ? parseInt(productId, 10) : productId,
+      quantity,
+    };
+
+    // Filtra atributos vazios ou inválidos
+    if (variation && variation.length > 0) {
+      const validVariation = variation.filter(attr => attr.value && attr.value.trim() !== '');
+      if (validVariation.length > 0) {
+        payload.variation = validVariation;
+      }
+    }
+
+    console.debug('[cartApi.addItem] Payload:', payload);
+
+    return request('/cart/add-item', {
       method: 'POST',
-      body: JSON.stringify({
-        id: typeof productId === 'string' ? parseInt(productId, 10) : productId,
-        quantity,
-        ...(variation?.length ? { variation } : {}),
-      }),
-    }),
+      body: JSON.stringify(payload),
+    });
+  },
 
   updateItem: (key: string, quantity: number) =>
     request('/cart/update-item', {

@@ -72,6 +72,15 @@ export default function ProductDetailPage() {
 
         const data = await response.json();
         setProduct(data);
+        
+        // Debug: verificar estrutura do produto
+        console.debug('[ProductDetail] Product loaded:', {
+          id: data.id,
+          type: data.type,
+          attributes: data.attributes,
+          variations: data.variations,
+          hasVariations: !!data.variations?.length,
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro ao carregar produto');
       } finally {
@@ -92,7 +101,12 @@ export default function ProductDetailPage() {
     a => a.has_variations || a.terms.length > 1,
   );
   const storeVariationRefs: StoreApiVariationRef[] = (product as any)?.variations ?? [];
-  const isVariable = variationAttributes.length > 0 && storeVariationRefs.length > 0;
+  
+  // Melhorada: verifica tipo do produto ou presença de referências de variação
+  const isVariable = (
+    (product as any)?.type === 'variable' || 
+    (variationAttributes.length > 0 && storeVariationRefs.length > 0)
+  );
   const hasSelectableAttributes = selectableAttributes.length > 0;
 
   useEffect(() => {
@@ -105,6 +119,8 @@ export default function ProductDetailPage() {
         if (!res.ok) throw new Error('Erro ao buscar variações');
         const data: WCVariation[] = await res.json();
         setVariations(data);
+        
+        console.debug('[ProductDetail] Variations loaded:', data.length, 'variations');
 
         // Pré-selecionar atributos com valor default (se existir)
         const defaults: Record<string, string> = {};
@@ -116,6 +132,7 @@ export default function ProductDetailPage() {
         });
         if (Object.keys(defaults).length > 0) {
           setSelectedAttributes(defaults);
+          console.debug('[ProductDetail] Default attributes selected:', defaults);
         }
       } catch (err) {
         console.error('Erro ao carregar variações:', err);
@@ -280,11 +297,24 @@ export default function ProductDetailPage() {
 
       // Construir array de variação para o Store API (taxonomy slug + term slug)
       const variation = isVariable
-        ? variationAttributes.map(attr => ({
-            attribute: attr.taxonomy,
-            value: selectedAttributes[attr.taxonomy] || '',
-          }))
+        ? variationAttributes
+            .map(attr => ({
+              attribute: attr.taxonomy,
+              value: selectedAttributes[attr.taxonomy] || '',
+            }))
+            .filter(attr => attr.value && attr.value.trim() !== '')
         : undefined;
+
+      // Debug: verificar se a variação é válida
+      if (isVariable) {
+        console.debug('[ProductDetail] Adding to cart with variation:', {
+          productId: product.id,
+          variation,
+          selectedAttributes,
+          matchedRef,
+          selectedVariation,
+        });
+      }
 
       addToCart({
         id: product.id.toString(),
@@ -292,7 +322,7 @@ export default function ProductDetailPage() {
         price: price || 0,
         category: categoryName,
         inStock: true,
-      }, quantity, variation);
+      }, quantity, variation && variation.length > 0 ? variation : undefined);
     }
   };
 

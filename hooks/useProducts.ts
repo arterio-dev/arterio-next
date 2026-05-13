@@ -55,19 +55,19 @@ export function useProducts(options: UseProductsOptions = {}) {
           
           // 3. Apply client-side category filtering
           if (categoryId || categoryName) {
-            // Build a set of category IDs to match, including parent categories
+            // Build a set of category IDs to match, including subcategories
             const categoryIdsToMatch = new Set<string>();
             
             if (categoryId) {
               categoryIdsToMatch.add(categoryId);
               
-              // If this is a subcategory, also include its parent category
+              // If this is a parent category, also include all its subcategories
               if (categories && categories.length > 0) {
-                const selectedCat = categories.find(c => c.id.toString() === categoryId);
-                if (selectedCat && selectedCat.parent) {
-                  // Add the parent category to the match set
-                  categoryIdsToMatch.add(selectedCat.parent.toString());
-                }
+                const parentId = parseInt(categoryId, 10);
+                const subcategories = categories.filter(c => c.parent === parentId);
+                subcategories.forEach(subcat => {
+                  categoryIdsToMatch.add(subcat.id.toString());
+                });
               }
             }
             
