@@ -63,7 +63,7 @@ export async function GET(
       ...v,
       attributes: v.attributes?.map((attr: any) => ({
         // Usar o "name" como attribute (sem conversão para pa_)
-        attribute: attr.name,
+        attribute: attr.name.toLowerCase().replace(/\s+/g, '_'),
         // "option" é o valor selecionado, converter para slug (lowercase, sem espaços)
         value: attr.option.toLowerCase().replace(/\s+/g, '-'),
       })) || [],
