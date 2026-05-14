@@ -42,8 +42,8 @@ export const STORE_INFO = {
   
   // Horário de funcionamento
   hours: {
-    weekdays: 'Segunda a Sexta: 10h às 17h',
-    saturday: 'Sábado: Fechado',
+    weekdays: 'Segunda a Sexta: 9h às 18h30',
+    saturday: 'Sábado: 9h às 13h',
     sunday: 'Domingo: Fechado',
   },
   
