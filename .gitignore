@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+VARIATION_DEBUGGING_GUIDE.md
+VARIATION_FIX_SUMMARY.md

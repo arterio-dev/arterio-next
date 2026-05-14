@@ -154,12 +154,23 @@ export default function ProductDetailPage() {
   // Para produtos simples com atributos: não há restrição de "tudo seleccionado"
   const canAddToCart = isVariable ? allAttributesSelected : true;
 
+  // Helper: encontrar um valor de atributo numa variação (compatível com {attribute} ou {name})
+  const getAttributeValue = (attrList: any[], attrKey: string) => {
+    const attr = attrList.find(a => 
+      // Suporta tanto {attribute: "pa_size", value: ...} quanto {name: "Size", value: ...}
+      a.attribute === attrKey || a.name === attrKey
+    );
+    return attr?.value;
+  };
+
   // Encontra a variação na lista de refs do Store API (por taxonomy + slug)
   const matchedRef = allAttributesSelected
     ? storeVariationRefs.find(ref =>
         variationAttributes.every(attr => {
           const selected = selectedAttributes[attr.taxonomy];
-          const refValue = ref.attributes.find(a => a.attribute === attr.taxonomy)?.value;
+          // Suporta tanto atributos com "attribute" (taxonomy slug) quanto "name" (display name)
+          const refValue = getAttributeValue(ref.attributes, attr.taxonomy) || 
+                          getAttributeValue(ref.attributes, attr.name);
           // refValue vazio ("") aceita qualquer opção ("Any X")
           return refValue === selected || refValue === '';
         }),
@@ -202,7 +213,9 @@ export default function ProductDetailPage() {
         // este term com as selecções actuais dos outros atributos
         const matchingRef = storeVariationRefs.find(ref => {
           // Este ref tem o term actual para este atributo?
-          const refVal = ref.attributes.find(a => a.attribute === attr.taxonomy)?.value;
+          // Suporta tanto {attribute: "pa_size"} quanto {name: "Size"}
+          const refVal = getAttributeValue(ref.attributes, attr.taxonomy) || 
+                        getAttributeValue(ref.attributes, attr.name);
           if (refVal !== term.slug && refVal !== '') return false;
 
           // Combina com os outros atributos seleccionados?
@@ -210,7 +223,8 @@ export default function ProductDetailPage() {
             if (otherAttr.taxonomy === attr.taxonomy) return true; // skip self
             const otherSelected = selectedAttributes[otherAttr.taxonomy];
             if (!otherSelected) return true; // nenhuma selecção → tudo combina
-            const otherRefVal = ref.attributes.find(a => a.attribute === otherAttr.taxonomy)?.value;
+            const otherRefVal = getAttributeValue(ref.attributes, otherAttr.taxonomy) || 
+                               getAttributeValue(ref.attributes, otherAttr.name);
             return otherRefVal === otherSelected || otherRefVal === '';
           });
         });

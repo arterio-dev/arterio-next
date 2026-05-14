@@ -91,18 +91,22 @@ export const productService = {
         // Filter by category client-side if category is specified
         let filteredProducts = pageProducts;
         if (params?.categoryId || params?.categoryName) {
-          // Build a set of category IDs to match, including parent categories
+          // Build a set of category IDs to match
+          // For parent categories, also include all subcategories
           const categoryIdsToMatch = new Set<string>();
           
           if (params.categoryId) {
             categoryIdsToMatch.add(params.categoryId);
             
-            // If this is a subcategory, also include its parent category
+            // If this is a PARENT category, also include all its subcategories
             if (params.allCategories && params.allCategories.length > 0) {
               const selectedCat = params.allCategories.find(c => c.id.toString() === params.categoryId);
-              if (selectedCat && selectedCat.parent) {
-                // Add the parent category to the match set
-                categoryIdsToMatch.add(selectedCat.parent.toString());
+              // Only add subcategories if the selected category IS a parent (has no parent itself)
+              if (selectedCat && (!selectedCat.parent || selectedCat.parent === 0)) {
+                const subcategories = params.allCategories.filter(c => c.parent === selectedCat.id);
+                subcategories.forEach(subcat => {
+                  categoryIdsToMatch.add(subcat.id.toString());
+                });
               }
             }
           }
