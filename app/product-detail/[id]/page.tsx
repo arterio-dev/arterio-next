@@ -96,6 +96,19 @@ export default function ProductDetailPage() {
   const storeAttributes: StoreApiAttribute[] = (product as any)?.attributes ?? [];
   // Atributos de variação (produto variable)
   const variationAttributes = storeAttributes.filter(a => a.has_variations);
+  
+  // ⚠️ DEBUG: verificar se variationAttributes têm taxonomy
+  if (variationAttributes.length > 0) {
+    const hasUndefinedTaxonomy = variationAttributes.some(a => !a.taxonomy);
+    if (hasUndefinedTaxonomy) {
+      console.error('[ProductDetail] ❌ variationAttributes tem undefined taxonomy!', variationAttributes);
+    } else {
+      console.debug('[ProductDetail] ✓ variationAttributes têm taxonomy:', 
+        variationAttributes.map(a => ({ name: a.name, taxonomy: a.taxonomy }))
+      );
+    }
+  }
+  
   // Atributos seleccionáveis: variação OU atributos com mais de 1 opção (produto simples)
   const selectableAttributes = storeAttributes.filter(
     a => a.has_variations || a.terms.length > 1,
@@ -312,15 +325,32 @@ export default function ProductDetailPage() {
       // Construir array de variação para o Store API (taxonomy slug + term slug)
       const variation = isVariable
         ? variationAttributes
-            .map(attr => ({
-              attribute: attr.taxonomy,
-              value: selectedAttributes[attr.taxonomy] || '',
-            }))
+            .map(attr => {
+              const selected = selectedAttributes[attr.taxonomy];
+              return {
+                attribute: attr.taxonomy,
+                value: selected || '',
+              };
+            })
             .filter(attr => attr.value && attr.value.trim() !== '')
         : undefined;
 
-      // Debug: verificar se a variação é válida
+      // Debug detalhado para diagnosticar
       if (isVariable) {
+        console.debug('[ProductDetail] variationAttributes:', variationAttributes);
+        console.debug('[ProductDetail] selectedAttributes:', selectedAttributes);
+        console.debug('[ProductDetail] variation (antes de enviar):', variation);
+        
+        // Verificar se tem undefined
+        const hasUndefined = variation?.some((v: any) => 
+          v.attribute === undefined || v.attribute === null || v.attribute === ''
+        );
+        if (hasUndefined) {
+          console.error('[ProductDetail] ❌ ERRO: variation tem attribute indefinido!', variation);
+          // Não enviar ao carrinho se tiver undefined
+          return;
+        }
+        
         console.debug('[ProductDetail] Adding to cart with variation:', {
           productId: product.id,
           variation,

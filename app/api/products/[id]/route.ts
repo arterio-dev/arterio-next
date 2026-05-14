@@ -37,6 +37,35 @@ export async function GET(
 
     let product = await response.json();
     
+    // ─── Garantir que product.attributes tem taxonomy ─────────────────────────────────────
+    // Se Store API não retorna taxonomy, criar automaticamente baseado no name
+    if (product.attributes && Array.isArray(product.attributes)) {
+      product.attributes = product.attributes.map((attr: any) => {
+        if (!attr.taxonomy && attr.name) {
+          // Criar taxonomy: pa_ + name em lowercase com underscores
+          const createdTaxonomy = `pa_${attr.name.toLowerCase().replace(/\s+/g, '_')}`;
+          console.debug(`[Products API] Created taxonomy for "${attr.name}": "${createdTaxonomy}"`);
+          return { ...attr, taxonomy: createdTaxonomy };
+        }
+        return attr;
+      });
+    }
+    
+    // ─── Debug: mostrar estrutura bruta dos attributes da Store API ────────────────────────
+    if (product.type === 'variable') {
+      console.debug(`[Products API] Store API attributes (raw):`, 
+        product.attributes?.map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          taxonomy: a.taxonomy,
+          has_variations: a.has_variations,
+        }))
+      );
+      console.debug(`[Products API] Store API first attribute keys:`, 
+        Object.keys(product.attributes?.[0] || {})
+      );
+    }
+    
     // Se for um produto variável e o Store API não retornar variações,
     // buscar IDs das variações da REST API v3 e adicionar ao produto
     if (product.type === 'variable' && (!product.variations || product.variations.length === 0)) {
