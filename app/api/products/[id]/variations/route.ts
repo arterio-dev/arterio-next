@@ -56,7 +56,26 @@ export async function GET(
       });
     }
     
-    return NextResponse.json(variations);
+    // ─── Converter atributos REST API v3 para formato esperado ──────────────────────────
+    // REST API v3: [{id, name, option}]
+    // Esperado: [{attribute: "pa_size", value: "m"}]
+    const convertedVariations = variations.map((v: any) => ({
+      ...v,
+      attributes: v.attributes?.map((attr: any) => ({
+        // A "name" da REST API é o nome do atributo, converter para taxonomy slug
+        // Se não souber o taxonomy, criar com pa_ + name slugificado
+        attribute: `pa_${attr.name.toLowerCase().replace(/\s+/g, '_')}`,
+        // "option" é o valor selecionado, converter para slug (lowercase, sem espaços)
+        value: attr.option.toLowerCase().replace(/\s+/g, '-'),
+      })) || [],
+    }));
+    
+    console.debug(`[Variations API] Converted first variation:`, {
+      id: convertedVariations[0]?.id,
+      attributes: convertedVariations[0]?.attributes,
+    });
+    
+    return NextResponse.json(convertedVariations);
   } catch (error) {
     console.error('[Variations] Erro ao buscar variações:', error);
     return NextResponse.json(

@@ -375,13 +375,31 @@ export default function ProductDetailPage() {
         });
       }
 
+      // Log final do payload completo antes de enviar
+      const finalVariations = variation && variation.length > 0 ? variation : undefined;
+      const cartPayload = {
+        product: {
+          id: product.id.toString(),
+          name: product.name,
+          price: price || 0,
+          category: categoryName,
+          inStock: true,
+        },
+        quantity,
+        variations: finalVariations,
+      };
+      
+      console.log('🛒 PAYLOAD FINAL ENVIADO AO CARRINHO:');
+      console.log('   Variações:', JSON.stringify(finalVariations, null, 2));
+      console.log('   Payload completo:', cartPayload);
+
       addToCart({
         id: product.id.toString(),
         name: product.name,
         price: price || 0,
         category: categoryName,
         inStock: true,
-      }, quantity, variation && variation.length > 0 ? variation : undefined);
+      }, quantity, finalVariations);
     }
   };
 

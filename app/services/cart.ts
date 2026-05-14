@@ -149,7 +149,10 @@ export const cartApi = {
       }
     }
 
-    console.debug('[cartApi.addItem] Payload:', payload);
+    console.log('📤 [cartApi.addItem] ENVIANDO PARA STORE API:');
+    console.log('   Payload:', JSON.stringify(payload, null, 2));
+    console.log('   Variações originais:', variation);
+    console.log('   Variações filtradas:', payload.variation);
 
     return request('/cart/add-item', {
       method: 'POST',

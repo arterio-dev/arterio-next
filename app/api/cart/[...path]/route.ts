@@ -23,14 +23,36 @@ async function proxyToWoo(request: NextRequest, path: string[]) {
 
   const init: RequestInit = { method: request.method, headers };
 
+  let body: string | undefined;
   if (request.method !== 'GET' && request.method !== 'HEAD') {
-    const body = await request.text();
+    body = await request.text();
     if (body) init.body = body;
+  }
+
+  // Log do que está sendo enviado ao WooCommerce
+  if (endpoint === 'cart/add-item' && request.method === 'POST') {
+    console.log('📡 [Cart Proxy] ➡️ ENVIANDO AO WOOCOMMERCE:');
+    console.log('   Endpoint:', endpoint);
+    console.log('   URL:', targetUrl);
+    if (body) {
+      try {
+        const parsed = JSON.parse(body);
+        console.log('   Body:', JSON.stringify(parsed, null, 2));
+      } catch {
+        console.log('   Body (raw):', body);
+      }
+    }
   }
 
   try {
     const response = await fetch(targetUrl, init);
     const data = await response.text();
+
+    if (endpoint === 'cart/add-item' && request.method === 'POST') {
+      console.log('📡 [Cart Proxy] ⬅️ RESPOSTA DO WOOCOMMERCE:');
+      console.log('   Status:', response.status);
+      console.log('   Response:', data.substring(0, 500));
+    }
 
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', 'application/json');
