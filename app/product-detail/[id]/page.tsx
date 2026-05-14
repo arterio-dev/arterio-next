@@ -341,7 +341,7 @@ export default function ProductDetailPage() {
               return {
                 attribute: attr.taxonomy,
                 // IMPORTANTE: WooCommerce espera lowercase slugs
-                value: (selected || '').toLowerCase().trim(),
+                value: (selected || '').trim(),
               };
             })
             .filter(attr => attr.value && attr.value.trim() !== '' && attr.attribute)
