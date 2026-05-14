@@ -107,6 +107,16 @@ export default function ProductDetailPage() {
         variationAttributes.map(a => ({ name: a.name, taxonomy: a.taxonomy }))
       );
     }
+    
+    // Extra debug: mostrar TODOS os atributos, não apenas os de variação
+    console.debug('[ProductDetail] TODOS os storeAttributes:', 
+      storeAttributes.map(a => ({ 
+        name: a.name, 
+        taxonomy: a.taxonomy, 
+        has_variations: a.has_variations,
+        terms: a.terms?.length 
+      }))
+    );
   }
   
   // Atributos seleccionáveis: variação OU atributos com mais de 1 opção (produto simples)
@@ -327,12 +337,17 @@ export default function ProductDetailPage() {
         ? variationAttributes
             .map(attr => {
               const selected = selectedAttributes[attr.taxonomy];
+              
+              // FALLBACK: se taxonomy é undefined, criar a partir do name
+              const taxonomy = attr.taxonomy || `pa_${attr.name.toLowerCase().replace(/\s+/g, '_')}`;
+              
               return {
-                attribute: attr.taxonomy,
-                value: selected || '',
+                attribute: taxonomy,
+                // IMPORTANTE: WooCommerce espera lowercase slugs
+                value: (selected || '').toLowerCase().trim(),
               };
             })
-            .filter(attr => attr.value && attr.value.trim() !== '')
+            .filter(attr => attr.value && attr.value.trim() !== '' && attr.attribute)
         : undefined;
 
       // Debug detalhado para diagnosticar
