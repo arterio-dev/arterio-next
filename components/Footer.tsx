@@ -71,7 +71,7 @@ export function Footer({ onNavigate }: FooterProps) {
               <p>WhatsApp: {STORE_INFO.phones[0].display}</p>
               <p>Telefone Fixo: {STORE_INFO.phones[1].display}</p>
               <p>Email: {STORE_INFO.email.general}</p>
-              <p>{STORE_INFO.hours.weekdays}</p>
+              <p>{STORE_INFO.hours.weekdays}</p> <p>{STORE_INFO.hours.saturday}</p>
               <p className="pt-2">
                 <MapPin size={12} strokeWidth={1.5} className="inline mr-1" />
                 {STORE_INFO.address.full}
