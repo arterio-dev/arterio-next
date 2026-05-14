@@ -62,12 +62,41 @@ export async function GET(
           if (varRes.ok) {
             const variations = await varRes.json();
             // Converter para referências de variação (id + atributos) para o Store API
+            // IMPORTANTE: Usar taxonomy slug (ex: "pa_size") + term slug (ex: "large")
+            // em vez de display names
             product.variations = variations.map((v: any) => ({
               id: v.id,
-              attributes: v.attributes.map((attr: any) => ({
-                attribute: attr.name,
-                value: attr.option,
-              })),
+              attributes: v.attributes.map((restAttr: any) => {
+                // Encontrar o atributo correspondente no Store API para obter a taxonomy
+                const storeAttr = product.attributes?.find(
+                  (a: any) => a.name.toLowerCase() === restAttr.name.toLowerCase()
+                );
+                
+                if (!storeAttr) {
+                  // Fallback: se não encontrar, usar o name como attribute
+                  console.warn(
+                    `[Products API] Could not find Store API attribute matching "${restAttr.name}" for variation`,
+                    { variationId: v.id, restAttr }
+                  );
+                  return {
+                    attribute: restAttr.name,
+                    value: restAttr.option,
+                  };
+                }
+
+                // Encontrar o term (slug) que corresponde à option (name)
+                const matchingTerm = storeAttr.terms?.find(
+                  (term: any) => term.name.toLowerCase() === restAttr.option.toLowerCase()
+                );
+
+                const attributeSlug = storeAttr.taxonomy;
+                const valueSlug = matchingTerm?.slug || restAttr.option.toLowerCase().replace(/\s+/g, '-');
+
+                return {
+                  attribute: attributeSlug,
+                  value: valueSlug,
+                };
+              }),
             }));
             
             console.debug(`[Products API] Enriched product ${id} with ${product.variations.length} variations`);
