@@ -338,11 +338,8 @@ export default function ProductDetailPage() {
             .map(attr => {
               const selected = selectedAttributes[attr.taxonomy];
               
-              // FALLBACK: se taxonomy é undefined, criar a partir do name
-              const taxonomy = attr.taxonomy || `pa_${attr.name.toLowerCase().replace(/\s+/g, '_')}`;
-              
               return {
-                attribute: taxonomy,
+                attribute: attr.taxonomy,
                 // IMPORTANTE: WooCommerce espera lowercase slugs
                 value: (selected || '').toLowerCase().trim(),
               };

@@ -58,13 +58,12 @@ export async function GET(
     
     // ─── Converter atributos REST API v3 para formato esperado ──────────────────────────
     // REST API v3: [{id, name, option}]
-    // Esperado: [{attribute: "pa_size", value: "m"}]
+    // Esperado: [{attribute: "tamanho", value: "m"}]
     const convertedVariations = variations.map((v: any) => ({
       ...v,
       attributes: v.attributes?.map((attr: any) => ({
-        // A "name" da REST API é o nome do atributo, converter para taxonomy slug
-        // Se não souber o taxonomy, criar com pa_ + name slugificado
-        attribute: `pa_${attr.name.toLowerCase().replace(/\s+/g, '_')}`,
+        // Usar o "name" como attribute (sem conversão para pa_)
+        attribute: attr.name,
         // "option" é o valor selecionado, converter para slug (lowercase, sem espaços)
         value: attr.option.toLowerCase().replace(/\s+/g, '-'),
       })) || [],

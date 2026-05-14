@@ -38,14 +38,12 @@ export async function GET(
     let product = await response.json();
     
     // ─── Garantir que product.attributes tem taxonomy ─────────────────────────────────────
-    // Se Store API não retorna taxonomy, criar automaticamente baseado no name
+    // Se Store API não retorna taxonomy, usar o name diretamente
     if (product.attributes && Array.isArray(product.attributes)) {
       product.attributes = product.attributes.map((attr: any) => {
         if (!attr.taxonomy && attr.name) {
-          // Criar taxonomy: pa_ + name em lowercase com underscores
-          const createdTaxonomy = `pa_${attr.name.toLowerCase().replace(/\s+/g, '_')}`;
-          console.debug(`[Products API] Created taxonomy for "${attr.name}": "${createdTaxonomy}"`);
-          return { ...attr, taxonomy: createdTaxonomy };
+          console.debug(`[Products API] Using name as taxonomy for "${attr.name}"`);
+          return { ...attr, taxonomy: attr.name };
         }
         return attr;
       });
@@ -139,13 +137,11 @@ export async function GET(
                       { variationId: v.id, restAttrId: restAttr.id, restAttrName: restAttr.name }
                     );
                     
-                    // Fallback: slugificar o nome do atributo e da opção
-                    // pa_ é o prefixo padrão para atributos customizados do WooCommerce
-                    const slugifiedAttr = `pa_${restAttr.name.toLowerCase().replace(/\s+/g, '_')}`;
+                    // Fallback: usar o nome do atributo diretamente
                     const slugifiedValue = restAttr.option.toLowerCase().replace(/\s+/g, '-');
                     
                     return {
-                      attribute: slugifiedAttr,
+                      attribute: restAttr.name,
                       value: slugifiedValue,
                     };
                   }
